@@ -9,7 +9,7 @@ AWS の AI-DLC（AI-Driven Development Life Cycle）v2 を使い、端末環境�
 |---|---|---|---|
 | 00 | [00-research/ai-dlc2-overview.md](00-research/ai-dlc2-overview.md) | 公式情報の調査メモ | ✅ |
 | 01 | `01-what-is-ai-dlc2.md` | AI-DLC2 とは（v1との違い、5フェーズ/33ステージ、エージェント、プロファイル） | ⬜ |
-| 02 | `02-environment-setup.md` | 環境構築（WSL2, Claude Code, aidlc インストール, `aidlc config`, `aidlc doctor`） | ⬜ |
+| 02 | [02-environment-setup.md](02-environment-setup.md) | 環境構築（WSL2, Claude Code, aidlc インストール, `aidlc config`, `aidlc doctor`） | ✅ |
 | 03 | `03-ideation.md` | Ideation（Intent Capture 〜 Approval & Handoff） | ⬜ |
 | 04 | `04-inception.md` | Inception（要件・ストーリー・ドメイン設計・Unit 分割・Bolt 計画） | ⬜ |
 | 05 | `05-construction.md` | Construction（Unit 毎の設計・コード生成・Build & Test・CI） | ⬜ |
@@ -23,7 +23,7 @@ AWS の AI-DLC（AI-Driven Development Life Cycle）v2 を使い、端末環境�
 - つまずいた点と解決策は章末の「ハマりどころ」にまとめる（動画の見どころになる）。
 
 ## 次に決めること
-- サンプルアプリの題材
-- ワークフロープロファイル（デプロイまで回すなら `feature` か `/aidlc compose`）
+- サンプルアプリの題材 → **タスク管理 Web アプリ**（決定）
+- ワークフロープロファイル → **feature**（決定）
 - LLM プロバイダ（Claude Code の現在の認証 or Amazon Bedrock）
 - AWS 構成（例: CDK + Lambda / API Gateway / DynamoDB + S3 / CloudFront）とアカウント・リージョン
