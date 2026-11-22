@@ -33,7 +33,9 @@
 
 ## Deployment
 
-<!-- Project-specific specialisation. -->
+- AWS `ap-northeast-1`, existing personal sandbox account shared with another project (mononoke). Use the AWS CLI `default` profile.
+- Fully serverless. The whole system must run within the AWS Free Tier (target: ~$0/month) for a demo MVP used by a handful of people.
+- Tag every resource with `Name=masahiro-<aws-service>-monsternote` (same convention as the account's other project).
 
 ## Code Style
 
@@ -57,12 +59,19 @@
 <!-- Populated by practices-discovery affirmation gate. -->
 <!-- Format: - NEVER [behavior] (affirmed [date]) -->
 <!-- Example: - NEVER throw exceptions across service layer boundaries (affirmed 2026-05-17) -->
+- NEVER use always-on or hourly-billed AWS resources (EC2, RDS/Aurora, NAT Gateway, Fargate, ElastiCache, WAF, Route 53 hosted zones) (affirmed 2026-11-23)
+- NEVER touch or modify the other project's (mononoke) AWS resources in the shared account (affirmed 2026-11-23)
+- NEVER commit secrets (AWS credentials, .env files, passwords); the GitHub repository is public (affirmed 2026-11-23)
+- NEVER run load tests that could exceed the Free Tier (affirmed 2026-11-23)
 
 ## Mandated
 
 <!-- Populated by practices-discovery affirmation gate. -->
 <!-- Format: - ALWAYS [behavior] (affirmed [date]) -->
 <!-- Example: - ALWAYS use Result<T,E> for fallible operations in service layer (affirmed 2026-05-17) -->
+- ALWAYS check new AWS resources against the Free Tier and state the expected monthly cost before provisioning (affirmed 2026-11-23)
+- ALWAYS set API throttling, Lambda memory 128-256 MB, and CloudWatch Logs retention 14 days or less (affirmed 2026-11-23)
+- ALWAYS ask the human before running any deploy or destroy against AWS (affirmed 2026-11-23)
 
 ## Corrections
 

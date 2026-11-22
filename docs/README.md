@@ -25,5 +25,8 @@ AWS の AI-DLC（AI-Driven Development Life Cycle）v2 を使い、端末環境�
 ## 次に決めること
 - サンプルアプリの題材 → **タスク管理 Web アプリ**（決定）
 - ワークフロープロファイル → **feature**（決定）
-- LLM プロバイダ（Claude Code の現在の認証 or Amazon Bedrock）
-- AWS 構成（例: CDK + Lambda / API Gateway / DynamoDB + S3 / CloudFront）とアカウント・リージョン
+- GitHub → **https://github.com/masahirosako1005/MonsterNote**（決定）
+- AWS → **mononoke と同じアカウント・`ap-northeast-1`・フルサーバレス・無料枠内・数人利用の MVP**（決定）
+  - AI-DLC への入力: `aidlc/spaces/default/knowledge/aidlc-shared/technical-environment.md`（全ステージが参照）
+  - 絶対ルール: `aidlc/spaces/default/memory/project.md`（Deployment / Mandated / Forbidden）
+- LLM プロバイダ → Claude Code の現在の認証をそのまま使う
