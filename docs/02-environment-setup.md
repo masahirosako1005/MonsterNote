@@ -115,6 +115,21 @@ git commit -m "chore: set up AI-DLC 2.11.4 for Claude Code"
 - `context7` MCP は `CONTEXT7_API_KEY` が必要（任意）。
 - ネット上の古い記事（2.7 以前）の `git checkout v2` → `cp -r dist/claude/...` 手順や Bun のインストールは不要。
 
+### 6. GitHub に接続して push
+GitHub 上で空のパブリックリポジトリ（MonsterNote）を作成してから:
+```bash
+git remote add origin https://github.com/masahirosako1005/MonsterNote.git
+gh auth login -h github.com -p https -w   # 表示されたコードを https://github.com/login/device で入力
+gh auth setup-git                         # git push が gh の認証を使うようにする
+git push -u origin main
+```
+- `gh auth setup-git` はログイン完了後に実行する（先に実行すると「not logged into any GitHub hosts」になる）。
+
+### 補足：AI-DLC のフックはすぐに効き始める
+`aidlc config` 後、同じ Claude Code セッションでも AI-DLC のフックが動き出し、
+`aidlc/spaces/.../` を含むシェルコマンドを「監査ログの直接書き込み」とみなしてブロックすることがある。
+監査ログは AI-DLC 自身のコマンドだけが書く設計のため。誤検知なら別の手段（ファイル編集ツール等）を使う。
+
 ## 次の章
 Claude Code を再起動して:
 ```
