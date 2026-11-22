@@ -76,6 +76,16 @@ Framework integrity     ok  all 12 checks passed
 ```
 警告は「`aidlc/` が未コミット」というだけなので、コミットすれば消える。
 
+### 4.5 uv（uvx）を入れて AWS 系 MCP サーバを有効にする
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# downloading uv 0.13.9 ... installing to ~/.local/bin  uv  uvx
+uvx --version
+aidlc doctor
+# Project (.claude, Claude Code)  ok  all 47 checks passed
+# 0 problems, 0 warnings.  Your install is ready.
+```
+
 ### 5. 生成物をコミット
 ```bash
 git add .claude .gitignore .mcp.json aidlc
