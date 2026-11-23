@@ -42,13 +42,18 @@ export class AuthStack extends Stack {
       preventUserExistenceErrors: true,
     });
     // リフレッシュトークンの更新（rotation）: 出し直しのたびに新しい値（30 日）を出し、古い値は 60 秒の猶予のあと使えなくする
-    (this.userPoolClient.node.defaultChild as CfnUserPoolClient).addPropertyOverride(
-      'RefreshTokenRotation',
-      {
-        Feature: 'ENABLED',
-        RetryGracePeriodSeconds: 60,
-      },
-    );
+    const cfnClient = this.userPoolClient.node.defaultChild as CfnUserPoolClient;
+    cfnClient.addPropertyOverride('RefreshTokenRotation', {
+      Feature: 'ENABLED',
+      RetryGracePeriodSeconds: 60,
+    });
+    // rotation が有効なとき、Cognito は ALLOW_REFRESH_TOKEN_AUTH を書くことを拒む（400）。
+    // CDK は authFlows を指定すると必ずこれを足すため、明示的に上書きして外す。
+    // 外しても更新はできる（rotation が有効なときは暗黙に許可される）。
+    cfnClient.addPropertyOverride('ExplicitAuthFlows', [
+      'ALLOW_USER_PASSWORD_AUTH',
+      'ALLOW_USER_SRP_AUTH',
+    ]);
 
     for (const group of ['hunter', 'requester', 'admin']) {
       new CfnUserPoolGroup(this, `Group-${group}`, {

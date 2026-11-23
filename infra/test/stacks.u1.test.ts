@@ -60,7 +60,7 @@ describe('Auth（Cognito）', () => {
       IdTokenValidity: 60,
       RefreshTokenValidity: 43200,
       TokenValidityUnits: { AccessToken: 'minutes', IdToken: 'minutes', RefreshToken: 'minutes' },
-      ExplicitAuthFlows: Match.arrayWith(['ALLOW_USER_PASSWORD_AUTH', 'ALLOW_REFRESH_TOKEN_AUTH']),
+      ExplicitAuthFlows: Match.arrayWith(['ALLOW_USER_PASSWORD_AUTH', 'ALLOW_USER_SRP_AUTH']),
       EnableTokenRevocation: true,
     });
   });
@@ -69,6 +69,16 @@ describe('Auth（Cognito）', () => {
     t.auth!.hasResourceProperties('AWS::Cognito::UserPoolClient', {
       RefreshTokenRotation: { Feature: 'ENABLED', RetryGracePeriodSeconds: 60 },
     });
+  });
+
+  // rotation を有効にすると ALLOW_REFRESH_TOKEN_AUTH は書けない（Cognito が 400 を返す）。
+  // 書かなくても更新はできる（rotation が有効なとき、更新は暗黙に許可される）。
+  it('rotation が有効なため ALLOW_REFRESH_TOKEN_AUTH は入れない', () => {
+    const flows = resourcesOf(t.auth!, 'AWS::Cognito::UserPoolClient').map(
+      (c) => c.Properties.ExplicitAuthFlows as string[],
+    );
+    expect(flows).toHaveLength(1);
+    expect(flows[0]).not.toContain('ALLOW_REFRESH_TOKEN_AUTH');
   });
 
   it('グループは hunter・requester・admin の 3 つ', () => {

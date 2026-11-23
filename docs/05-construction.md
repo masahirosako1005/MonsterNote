@@ -347,3 +347,76 @@ AI-DLC は承認の前に「人が直したことのうち、次回も通じる�
 直し方: 結合試験の `beforeAll` で `mkdirSync(installPath, { recursive: true })` を実行する（`dynamodb-local` が途中のフォルダを作らないため）。キャッシュを消した状態で 4 件の成功と `npm run verify` の成功を確かめてから push。
 
 > 💡 教材ポイント: 「自分の PC だけで通る状態」は、CI が必ず見つけてくれる。手元でその場しのぎをしたときは、必ずコードの側に直しを入れる。AI-DLC は承認後のコードの変更を覚えていて、次のチェックポイントで「レビュー後に変わった」と知らせてくる。
+
+## 8. AWS への最初のデプロイ（dev）
+
+### bootstrap
+- 確かめたこと: アカウント `611913894230`（`ap-northeast-1`）。既存のスタックは `mononoke-backend-dev` だけ。CDK の bootstrap はまだ無い
+- 質問: MonsterNote 専用の bootstrap を作ってよいか（S3 1・ECR 1・IAM ロール 4〜5・SSM パラメーター 1、月額 0 円）→ 回答: **実行する**
+- 実行: `npx cdk bootstrap aws://611913894230/ap-northeast-1 --qualifier mnote --toolkit-stack-name MonsterNote-CDKToolkit`
+- 共用アカウントの既定の `CDKToolkit` には触れず、別のスタックを作った（mononoke に影響しない）
+
+### cdk diff で作るものを確かめる
+新しく作られるのは **103 リソース / 5 スタック**。常時課金のサービスは 1 つもなく、月額の見込みは数円以内。
+
+| 種類 | 数 | 月額の見込み |
+|---|---|---|
+| Lambda 関数（+ レイヤー 2） | 8 | 0 円（月 100 万回まで無料） |
+| API Gateway（HTTP API・ルート 11） | 1 | 0 円（12 か月） |
+| DynamoDB テーブル | 7 | 0〜数円 |
+| S3 バケット | 3 | 0 円（12 か月） |
+| CloudFront | 2 | 0 円 |
+| Cognito | 1 | 0 円 |
+| EventBridge（バス 1・ルール 2） | 3 | 1 円未満 |
+| Logs・アラーム 2・SNS | 12 | 0 円 |
+| IAM・Lambda の許可など | 30 | 無料 |
+
+> ⚠️ ハマりどころ: `cdk diff` は CloudFormation に一時的なスタックを作って消すため、`list-stacks` に `DELETE_COMPLETE` の行が diff の回数だけ残る。異常ではない。
+
+- 質問: アラームの通知先メール → 回答: **後で設定**（アラーム自体は作る）
+- 質問: 103 リソースを dev にデプロイしてよいか → 回答: **デプロイする**
+
+### デプロイの 1 回目: 失敗
+1 つ目のスタック（Cognito）で止まった。
+
+```
+ALLOW_REFRESH_TOKEN_AUTH is not a permitted ExplicitAuthFlow
+when refresh token rotation is enabled.
+```
+
+設計（ADR）で決めたリフレッシュトークンの更新（rotation、60 秒の猶予）を有効にすると、Cognito は `ALLOW_REFRESH_TOKEN_AUTH` を認証フローに書くことを拒む。CDK は `authFlows` を指定すると必ずこれを足すため、両立しなかった。
+
+直し方: `ExplicitAuthFlows` を `ALLOW_USER_PASSWORD_AUTH`・`ALLOW_USER_SRP_AUTH` の 2 つに上書きして外した。rotation が有効なときは更新が暗黙に許可されるため、動きは変わらない。TDD どおり、先に失敗する試験を書いて（Red）から直した（Green、CDK の構成の試験 29 件成功）。
+
+- 質問: 失敗したスタック（`ROLLBACK_COMPLETE`、中身は空）を消してやり直してよいか → 回答: **消してやり直す**
+
+> 💡 教材ポイント: `cdk synth` も構成の試験も通るのに、**実際に AWS に出して初めて分かる食い違い**がある。だからチームの決まりでは、手元の確認（`npm run verify`）だけでなく、`dev` に置いて `npm run smoke` まで通すことをスケルトンの条件にしている。
+
+### デプロイの 2 回目: 成功
+5 スタックすべて成功（合計 12 分 26 秒。CloudFront の作成が長い）。
+
+| 画面・API | URL |
+|---|---|
+| ハンターの画面 | https://d39gl3iwb322u9.cloudfront.net |
+| 依頼元の画面 | https://d1mc7hjb9nzwys.cloudfront.net |
+| API | https://sp1tuuoxfj.execute-api.ap-northeast-1.amazonaws.com |
+
+### スモーク（npm run smoke）: すべて通った
+
+| 手順 | 結果 |
+|---|---|
+| 1. 2 つの画面と `config.json` が開ける | ✔ 1.3 秒 |
+| 2. ハンターでログイン（Cognito） | ✔ 2.1 秒 |
+| 3. 写真を S3 に署名付き POST で送る（CORS 含む） | ✔ 2.1 秒 |
+| 4. 報告を送る | ✔ 0.6 秒 |
+| 5. ハンターの一覧に「確認中」（EventBridge の配達） | ✔ 2.0 秒 |
+| 6. 依頼元でログインして承認 | ✔ 2.8 秒 |
+| 7. ハンターの一覧が「承認」になる | ✔ 2.6 秒 |
+
+**これで「端から端まで一通り動く細い版」（ウォーキングスケルトン）が、本物の AWS で動いた。**
+
+> ⚠️ ハマりどころ: cicd-pipeline.md には試験用アカウントを `smoke-hunter` と書いていたが、ログイン ID の決まりは「英数字 3〜32 文字」でハイフンが使えない。`smokehunter`・`smokerequester` にした。設計の文書どうしの食い違いも、実際に動かすと見つかる。
+
+> ⚠️ ハマりどころ: `npm run account:create -- --display-name "スモーク ハンター"` のように空白を含む値を渡すと、`npm run --` 経由では引用符が外れて 2 つの引数に割れる。空白を含まない名前にするか、スクリプトを直接呼ぶ。
+
+接続に使う値（URL・試験用アカウントのパスワード）は `infra/.env.local` に置いた。`.gitignore` で除外されていることを `git check-ignore` で確かめた（公開リポジトリのため）。
