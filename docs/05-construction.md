@@ -334,3 +334,16 @@ AI-DLC は承認の前に「人が直したことのうち、次回も通じる�
 この版で作っていない受け入れ条件として、AI-DLC が **AC4.1.2**（一覧の絞り込み → U3）と **AC4.2.2**（重複の見比べ → U2）を挙げた。設計どおり、あとの Unit に回したもの。
 
 > 💡 教材ポイント: AI-DLC は「この Unit で作らなかった受け入れ条件」を承認のときに必ず挙げる。人が「作ったつもり」で先に進むのを防ぐ仕組み。
+
+## 7. PR と CI
+
+チームの決まりどおり、作業ブランチ `feat/u1-skeleton` にコミットし、PR #1 を作って GitHub の画面で差分を確かめてから `main` に取り込む。
+
+> ⚠️ ハマりどころ: `.github/workflows/ci.yml`（CI の設定）を含む push は、GitHub の認証に `workflow` の権限が要る。足りないと `refusing to allow an OAuth App to create or update workflow ... without 'workflow' scope` で止まる。`gh auth refresh -h github.com -s workflow` で足す。WSL ではブラウザが自動で開かないので、表示されたワンタイムコードを控えて https://github.com/login/device を手で開く。
+
+### CI の 1 回目: 失敗
+結合試験（DynamoDB Local）が `ENOENT: no such file or directory, mkdir '.../node_modules/.cache/dynamodb-local'` で落ちた。手元では「空のフォルダを 1 つ作る」でしのいでいたが、それは手元にしかない状態だった。
+
+直し方: 結合試験の `beforeAll` で `mkdirSync(installPath, { recursive: true })` を実行する（`dynamodb-local` が途中のフォルダを作らないため）。キャッシュを消した状態で 4 件の成功と `npm run verify` の成功を確かめてから push。
+
+> 💡 教材ポイント: 「自分の PC だけで通る状態」は、CI が必ず見つけてくれる。手元でその場しのぎをしたときは、必ずコードの側に直しを入れる。AI-DLC は承認後のコードの変更を覚えていて、次のチェックポイントで「レビュー後に変わった」と知らせてくる。
