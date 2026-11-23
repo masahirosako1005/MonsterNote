@@ -27,3 +27,12 @@ aidlc/diagnostics/
 .aidlc/base-source-listing.tsv
 .claude/settings.local.json
 # END AI-DLC:gitignore
+node_modules/
+cdk.out/
+coverage/
+dist/
+.env*
+!.env*.example
+*.pem
+playwright-report/
+test-results/

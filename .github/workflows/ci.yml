@@ -1,0 +1,58 @@
+# CI（GitHub Actions）: push と PR のたびに検査だけを行う。AWS に接続せず、AWS の認証情報は使わない（team.md、NFR13.3）。
+# どれかが失敗したら PR を取り込まない。デプロイは人の承認のあと手元から行う。
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # DynamoDB Local（結合の試験）は Java 17 以上で動く
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - run: npm ci
+
+      - name: format:check（Prettier）
+        run: npm run format:check
+
+      - name: lint（ESLint）
+        run: npm run lint
+
+      - name: typecheck（TypeScript）
+        run: npm run typecheck
+
+      - name: テスト（Vitest。カバレッジ 80% の床）
+        run: npm run test:coverage
+
+      - name: Playwright のブラウザ
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: E2E（AWS なし。API はモック）
+        run: npm run test:e2e
+
+      - name: cdk synth（デプロイしない）
+        run: npm run synth
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
