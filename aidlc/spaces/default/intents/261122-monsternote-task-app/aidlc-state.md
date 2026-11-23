@@ -48,6 +48,23 @@
 
 - **Unit Ownership**: solo
 
+- **Skeleton Stance**: on
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Phase Progress
 <!-- Status values: Pending, Active, Verified, Skipped -->
 
@@ -108,7 +125,9 @@
 - **Current Stage**: functional-design
 - **Next Stage**: nfr-requirements
 - **Status**: Running
-- **Last Updated**: 2026-11-23T09:34:38Z
+- **Last Updated**: 2026-11-23T11:40:15Z
+
+- **Construction Autonomy Mode**: gated
 
 ## Session Resume Point
 - **Last Completed Stage**: delivery-planning

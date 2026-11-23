@@ -1,0 +1,96 @@
+# MonsterNote の部品の間の知らせ（共通の約束の置き場。contract-summary C12・C13・C16 2.4）。
+# 届け方: EventBridge の独自のバス monsternote-dev。source は monsternote.<部品の名前>、detail-type は知らせの種類、
+# detail は EventEnvelope（reliability-design）。受け手は eventId で 2 回目を無視する。
+asyncapi: 2.6.0
+info:
+  title: MonsterNote events
+  version: v1
+defaultContentType: application/json
+channels:
+  report.saved:
+    description: C12 報告が保存された（送り手 Reporting = source monsternote.reporting。受け手 Review・ReportCatalog）
+    subscribe:
+      message:
+        payload:
+          allOf:
+            - $ref: '#/components/schemas/EventEnvelope'
+            - type: object
+              properties:
+                data:
+                  type: object
+                  required:
+                    [
+                      reportId,
+                      hunterAccountId,
+                      hunterName,
+                      species,
+                      capturedAt,
+                      location,
+                      manualEntry,
+                      submittedAt,
+                    ]
+                  properties:
+                    reportId: { type: string }
+                    hunterAccountId: { type: string }
+                    hunterName: { type: string }
+                    species: { type: string, enum: [bear, boar, deer] }
+                    capturedAt: { type: string, format: date-time }
+                    location:
+                      type: object
+                      properties:
+                        lat: { type: number }
+                        lng: { type: number }
+                    placeName: { type: string, description: U1 は空 }
+                    manualEntry: { type: boolean, description: U1 は false }
+                    submittedAt: { type: string, format: date-time }
+                    bodyPhotoId: { type: string }
+                    photoHash: { type: string, description: U2 で使う }
+  review.status-changed:
+    description: C13 報告の状態が変わった（送り手 Review = source monsternote.review。受け手 ReportCatalog）
+    subscribe:
+      message:
+        payload:
+          allOf:
+            - $ref: '#/components/schemas/EventEnvelope'
+            - type: object
+              properties:
+                data:
+                  type: object
+                  required: [reportId, status, previousStatus, changedAt]
+                  properties:
+                    reportId: { type: string }
+                    status: { type: string, enum: [checking, approved, rejected] }
+                    previousStatus: { type: string, enum: [none, checking, approved, rejected] }
+                    reason:
+                      { type: string, enum: [duplicate, insufficient-photo, out-of-scope, other] }
+                    undone: { type: boolean }
+                    changedAt: { type: string, format: date-time }
+components:
+  schemas:
+    EventEnvelope:
+      type: object
+      required: [eventId, type, version, occurredAt, source, data]
+      properties:
+        eventId: { type: string, format: uuid, description: 受け手はこれで 2 回目を無視する }
+        type: { type: string, example: report.saved }
+        version: { type: integer, minimum: 1 }
+        occurredAt:
+          {
+            type: string,
+            format: date-time,
+            description: 受け手は新しいものだけを反映する（contract-summary 2.5）,
+          }
+        actorAccountId: { type: string }
+        source:
+          type: string
+          enum:
+            [
+              Accounts,
+              Reporting,
+              SpeciesDetection,
+              DuplicateDetection,
+              Review,
+              ReportCatalog,
+              Settings,
+            ]
+        data: { type: object }

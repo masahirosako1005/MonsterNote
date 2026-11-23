@@ -1,0 +1,13 @@
+# 人のファイルと AI-DLC の記録は整形の対象にしない
+aidlc/
+.claude/
+docs/
+.mcp.json
+*.txt
+node_modules/
+dist/
+cdk.out/
+coverage/
+playwright-report/
+test-results/
+package-lock.json

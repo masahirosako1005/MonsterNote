@@ -1,0 +1,372 @@
+# MonsterNote の画面向けの API（共通の約束の置き場。contract-summary C1〜C4・C16）。
+# U1 で作った道と項目を書く。持ち主の Unit が足していく（contract-summary 6: 足すだけの変更はいつでもよい）。
+# U1 での変更: C2 POST /v1/photos の応答に uploadFields を足した（署名付きの POST）。capturedAt・location の source に device を足した。
+openapi: 3.0.3
+info:
+  title: MonsterNote API
+  version: v1
+servers:
+  - url: https://{apiId}.execute-api.ap-northeast-1.amazonaws.com
+    variables:
+      apiId: { default: example }
+security:
+  - bearerAuth: []
+paths:
+  /v1/session:
+    post:
+      tags: [Accounts]
+      summary: ログイン（US1.1、BR1.1）。Bearer は付けない
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [loginId, password]
+              properties:
+                loginId: { type: string }
+                password: { type: string, format: password }
+      responses:
+        '200':
+          description: 証明（1 時間）と出し直し用の値（最後の利用から 30 日）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [Accounts]
+      summary: ログアウト。出し直し用の値も使えなくする（BR1.3）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '204': { description: ログアウトした }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+  /v1/session/refresh:
+    post:
+      tags: [Accounts]
+      summary: 証明の出し直し（BR1.5）。Bearer は付けない
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: 新しい証明。出し直し用の値は更新される（rotation）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenResponse' }
+        '401': { $ref: '#/components/responses/Error' }
+  /v1/photos:
+    post:
+      tags: [Reporting]
+      summary: 写真のアップロードの準備（ハンター。BR2.2）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, contentType, sizeBytes]
+              properties:
+                kind: { type: string, enum: [body, tail, chest] }
+                contentType: { type: string, enum: [image/jpeg, image/png, image/heic] }
+                sizeBytes: { type: integer, minimum: 1, maximum: 15728640 }
+      responses:
+        '201':
+          description: 写真の ID と、署名付きの POST の URL と項目（期限 5 分）
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [photoId, uploadUrl, uploadFields, expiresInSeconds]
+                properties:
+                  photoId: { type: string }
+                  uploadUrl: { type: string, format: uri }
+                  uploadFields:
+                    type: object
+                    additionalProperties: { type: string }
+                    description: 署名付きの POST の項目（U1 で足した。infrastructure-specification 5）
+                  expiresInSeconds: { type: integer, example: 300 }
+        '403': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /v1/photos/{photoId}/complete:
+    post:
+      tags: [Reporting]
+      summary: アップロードの完了の知らせ（BR2.9。実物の大きさと形式を確かめる）
+      parameters:
+        - { name: photoId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: アップロード済み（U1 は種類の判別の結果なし）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  photoId: { type: string }
+                  uploadStatus: { type: string, enum: [uploaded] }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /v1/reports:
+    post:
+      tags: [Reporting]
+      summary: 報告の送信（ハンター。BR2.1〜BR2.7）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [submissionKey, photos, location, species, sex]
+              properties:
+                submissionKey: { type: string, minLength: 8, maxLength: 128 }
+                photos:
+                  type: object
+                  required: [body]
+                  properties:
+                    body: { type: string }
+                location: { $ref: '#/components/schemas/GeoPoint' }
+                species: { $ref: '#/components/schemas/Species' }
+                sex: { type: string, enum: [male, female, unknown] }
+      responses:
+        '201':
+          description: 保存した
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReportId' }
+        '200':
+          description: 同じ submissionKey ですでに保存済み（同じ reportId）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReportId' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+        '500': { $ref: '#/components/responses/Error' }
+  /v1/reports/{reportId}:
+    get:
+      tags: [Reporting]
+      summary: 報告の詳細と写真の表示用 URL（15 分）。ハンターは自分の報告だけ（BR2.8・BR6.1）
+      parameters:
+        - { name: reportId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: 詳細
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReportDetail' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/reviews/{reportId}:
+    get:
+      tags: [Review]
+      summary: 報告の状態と確認した人。ハンターは自分の報告だけ（BR3.5）
+      parameters:
+        - { name: reportId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: 状態
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Review' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/reviews/{reportId}/decision:
+    put:
+      tags: [Review]
+      summary: 承認（依頼元。確認中のときだけ。U1 は approved だけ。BR3.2〜BR3.7）
+      parameters:
+        - { name: reportId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approved] }
+      responses:
+        '200':
+          description: 承認した（同じ依頼元の送り直しも 200）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Review' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+  /v1/catalog/reports:
+    get:
+      tags: [ReportCatalog]
+      summary: すべての報告の一覧（依頼元。新しい順・50 件。BR4.2・BR4.4）
+      parameters:
+        - { name: cursor, in: query, required: false, schema: { type: string } }
+      responses:
+        '200':
+          description: 行と次のページの位置と全件数
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListPage' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /v1/catalog/my-reports:
+    get:
+      tags: [ReportCatalog]
+      summary: 自分の報告の一覧（ハンター。新しい順・50 件。BR4.3・BR4.4）
+      parameters:
+        - { name: cursor, in: query, required: false, schema: { type: string } }
+      responses:
+        '200':
+          description: 行と次のページの位置と全件数
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ListPage' }
+        '400': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Accounts が発行した ID トークン（sub・cognito:groups・name）
+  responses:
+    Error:
+      description: 共通のエラーの形（contract-summary 2.2）。応答のヘッダー x-request-id が問い合わせ番号
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: VALIDATION_FAILED }
+        message: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              reason: { type: string }
+        conflict:
+          type: object
+          description: 409 の詳細（ALREADY_DECIDED は decision・decidedByName・decidedAt、SUBMISSION_IN_PROGRESS は retryAfterSeconds）
+    Account:
+      type: object
+      required: [accountId, role, displayName]
+      properties:
+        accountId: { type: string }
+        role: { type: string, enum: [hunter, requester, admin] }
+        displayName: { type: string }
+        organization: { type: string, enum: [municipality, hunters-association] }
+    TokenResponse:
+      type: object
+      required: [idToken, accessToken, refreshToken, expiresIn, account]
+      properties:
+        idToken: { type: string }
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        expiresIn: { type: integer, example: 3600 }
+        account: { $ref: '#/components/schemas/Account' }
+    LoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/TokenResponse'
+        - type: object
+          required: [mustChangePassword, consentRequired, hunterNumberRequired]
+          properties:
+            mustChangePassword: { type: boolean }
+            consentRequired: { type: boolean }
+            hunterNumberRequired: { type: boolean }
+    GeoPoint:
+      type: object
+      required: [lat, lng]
+      properties:
+        lat: { type: number, minimum: -90, maximum: 90 }
+        lng: { type: number, minimum: -180, maximum: 180 }
+    Species:
+      type: string
+      enum: [bear, boar, deer]
+    Source:
+      type: string
+      enum: [device, exif, manual]
+      description: 日時と場所の出どころ（U1 で device を足した。U1 は device だけ）
+    ReportId:
+      type: object
+      required: [reportId]
+      properties:
+        reportId: { type: string }
+    ReportDetail:
+      type: object
+      properties:
+        reportId: { type: string }
+        hunterAccountId: { type: string }
+        hunterNumber: { type: string }
+        species: { $ref: '#/components/schemas/Species' }
+        sex: { type: string, enum: [male, female, unknown] }
+        capturedAt: { type: string, format: date-time }
+        capturedAtSource: { $ref: '#/components/schemas/Source' }
+        location: { $ref: '#/components/schemas/GeoPoint' }
+        locationSource: { $ref: '#/components/schemas/Source' }
+        submittedAt: { type: string, format: date-time }
+        photos:
+          type: array
+          items:
+            type: object
+            properties:
+              photoId: { type: string }
+              kind: { type: string, enum: [body, tail, chest] }
+              url: { type: string, format: uri }
+              expiresInSeconds: { type: integer, example: 900 }
+    Review:
+      type: object
+      required: [reportId, status]
+      properties:
+        reportId: { type: string }
+        status: { type: string, enum: [checking, approved, rejected] }
+        decidedByName: { type: string }
+        decidedAt: { type: string, format: date-time }
+    ListPage:
+      type: object
+      required: [items, nextCursor, totalCount]
+      properties:
+        items:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            properties:
+              reportId: { type: string }
+              hunterName: { type: string }
+              species: { $ref: '#/components/schemas/Species' }
+              capturedAt: { type: string, format: date-time }
+              placeName: { type: string, nullable: true }
+              status: { type: string, enum: [checking, approved, rejected] }
+              duplicateSuspected: { type: boolean }
+              manualEntry: { type: boolean }
+              submittedAt: { type: string, format: date-time }
+        nextCursor:
+          type: string
+          nullable: true
+          description: 前のページの最後の行を表す、画面が中身を読まない文字列。最後のページは null（BR4.4）
+        totalCount: { type: integer }

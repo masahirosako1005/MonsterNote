@@ -1,0 +1,47 @@
+{
+  "name": "monsternote",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MonsterNote: 有害鳥獣の捕獲報告と確認のアプリ（AI-DLC の学習用）",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "infra"
+  ],
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc -p backend/tsconfig.json --noEmit && tsc -p frontend/tsconfig.json --noEmit && tsc -p infra/tsconfig.json --noEmit && tsc -p scripts/tsconfig.json --noEmit && tsc -p e2e/tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:u1": "vitest run .u1.test.",
+    "test:e2e": "playwright test",
+    "build:web": "npm run build --workspace frontend",
+    "synth": "npm run build:web && npm run synth --workspace infra",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run test:e2e && npm run synth",
+    "smoke": "tsx scripts/smoke.ts",
+    "account:create": "tsx scripts/create-account.ts"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@eslint/js": "9.39.5",
+    "@playwright/test": "1.65.1",
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.1.1",
+    "eslint": "9.39.5",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.14.0",
+    "prettier": "3.10.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.73.0",
+    "vite": "7.3.8",
+    "vitest": "5.1.1"
+  }
+}

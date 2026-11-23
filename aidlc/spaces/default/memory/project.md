@@ -77,3 +77,4 @@
 
 <!-- Project-specific corrections from human feedback. -->
 <!-- Format: NEVER/ALWAYS [behavior] (learned [date]) -->
+- 依存パッケージは古い版に固定せず、設計で決めた系列の中の現在の安定版に上げ、`npm audit` を 0 件に保つ (learned 2026-11-23) <!-- cid:261122-monsternote-task-app:code-generation:066cc756d4980c75572ae85310d84939f91fb93849cc53f67163476b6beb88cf -->

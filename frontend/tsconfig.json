@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "types": ["node", "vite/client", "@testing-library/jest-dom"],
+    "paths": {
+      "@ui-kit/*": ["./ui-kit/src/*"]
+    }
+  },
+  "include": ["hunter", "requester", "ui-kit", "test", "vitest.config.ts"],
+  "exclude": ["**/dist/**"]
+}
