@@ -34,4 +34,5 @@
 - 2026-11-23T11:50:00Z — 依存を上げたあと: npm audit 0 件（開発用を含む・含まない、どちらも）。format・lint・typecheck・Vitest（219 成功・4 飛ばし、行 93.00%）・chromium の E2E 6/6・synth は成功。WebKit の E2E と DynamoDB Local の結合の試験は、まだこの PC で動かせない。
 - 2026-11-23T11:50:00Z — bodyPhotoId は約束 C12（report.saved の中身に bodyPhotoId がある）から来ている。
 - 2026-11-23T12:07:13Z — 人が WebKit の OS のライブラリと Java 17 を入れ、nvm の既定を Node.js 24 にしたため、`npm run verify` が最後まで通った（223 件すべて成功・飛ばしなし、行 93.00%、E2E は chromium と mobile-webkit で 12 件、synth 成功）。`node_modules/.cache` がなく dynamodb-local の起動が ENOENT で落ちたため、空のフォルダを作って解決した（道具の都合で、コードの問題ではない）。
+- 2026-11-23T13:04:36Z — dev への最初の `cdk deploy` が Cognito で失敗した: rotation を有効にすると `ALLOW_REFRESH_TOKEN_AUTH` を ExplicitAuthFlows に書けない（400）。CDK は `authFlows` の指定で必ずこれを足すため、`ExplicitAuthFlows` を USER_PASSWORD・USER_SRP の 2 つに上書きして外した（rotation が有効なとき更新は暗黙に許可される）。`cdk synth` と構成の試験では見つからない種類の食い違い。
 - 2026-11-23T12:40:38Z — 上の ENOENT は手元だけの問題ではなく、CI（PR #1）でも同じ所で落ちた。新しい作業コピーでは必ず起きるため、結合試験の beforeAll で `mkdirSync(installPath, { recursive: true })` を足して直した（承認後のコードの変更。空のキャッシュで 4 件成功を確かめ、`npm run verify` も通した）。
