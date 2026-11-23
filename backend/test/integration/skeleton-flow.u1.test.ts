@@ -3,6 +3,7 @@
 // EventBridge・S3・Cognito・Lambda の呼び出しはモックにし、送られた知らせを受け手に直接渡す。
 // Java がない環境では、この試験は「飛ばした」として表示される（黙って成功にはしない）。
 import { spawnSync } from 'node:child_process';
+import { mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
@@ -226,11 +227,12 @@ describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => 
   };
 
   beforeAll(async () => {
-    DynamoDbLocal.configureInstaller({
-      installPath: fileURLToPath(
-        new URL('../../../node_modules/.cache/dynamodb-local', import.meta.url),
-      ),
-    });
+    const installPath = fileURLToPath(
+      new URL('../../../node_modules/.cache/dynamodb-local', import.meta.url),
+    );
+    // dynamodb-local は途中のフォルダを作らないため、先に作っておく（新しい作業コピーや CI で ENOENT になる）
+    mkdirSync(installPath, { recursive: true });
+    DynamoDbLocal.configureInstaller({ installPath });
     await DynamoDbLocal.launch(PORT, null, [], false, true);
     // 起動を待つ
     for (let i = 0; i < 50; i++) {
