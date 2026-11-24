@@ -1,0 +1,707 @@
+{
+  "/MonsterNote-Data-dev": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381: in vitest...",
+        "new Promise (:)",
+        "...vitest..."
+      ]
+    },
+    {
+      "type": "aws:cdk:warning",
+      "data": "No cross-stack-reference strength configured, defaulting to \"strong\". We recommend you set feature flag \"@aws-cdk/core:defaultCrossStackReferences\" to \"both\", then deploy everywhere, then set it to \"weak\". Alternatively, set it to \"strong\" explicitly to lock in the current producer-protecting behavior. (See: https://github.com/aws/aws-cdk/blob/main/packages/aws-cdk-lib/README.md#reference-strength) [ack: @aws-cdk/core:crossStackReferencesDefaultStrong]",
+      "trace": [
+        "Annotations.addMessage (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/core/lib/annotations.js:1:4117)",
+        "Annotations.addWarningV2 (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/core/lib/annotations.js:1:2723)",
+        "resolveValue (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/core/lib/private/refs.js:1:7126)",
+        "resolveReferencesInElements (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/core/lib/private/refs.js:1:4994)",
+        "resolveReferences (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/core/lib/private/refs.js:1:4656)",
+        "prepareApp (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/core/lib/private/prepare-app.js:1:1178)",
+        "synthesize (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/core/lib/private/synthesis.js:1:2563)",
+        "App.synth (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/core/lib/stage.js:1:4999)",
+        "App.synth (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/core/lib/app.js:1:5429)",
+        "toTemplate (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/assertions/lib/template.js:2:247)",
+        "Template.fromStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/aws-cdk-lib/assertions/lib/template.js:1:2619)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:28:74",
+        "wrapper (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2219:28)",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690:11",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231:5",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20",
+        "new Promise (<anonymous>)",
+        "runWithTimeout (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3339:10)",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3669:52",
+        "run (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1400:20)",
+        "limiterFn (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1410:59)",
+        "runHook (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3668:10)",
+        "callSuiteHook (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3680:55)",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:4157:40",
+        "Traces.$ (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/traces.js:143:27)",
+        "trace (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/index.DNcttN5a.js:8455:21)",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:4157:13",
+        "callAroundHooks (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3703:9)",
+        "callAroundAllHooks (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3822:8)",
+        "runSuite (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:4152:10)",
+        "processTicksAndRejections (node:internal/process/task_queues:104:5)",
+        "runFiles (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:4239:3)",
+        "startTests (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:4278:3)",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/base.C2su7_N0.js:97:6",
+        "run (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/base.C2su7_N0.js:87:3)",
+        "runBaseTests (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/base.C2su7_N0.js:229:2)",
+        "execute (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/init.dGO4K2C0.js:195:3)",
+        "process.onMessage (file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/init.dGO4K2C0.js:345:20)"
+      ]
+    },
+    {
+      "type": "aws:cdk:templateFile",
+      "data": "MonsterNote-Data-dev.template.json"
+    }
+  ],
+  "/MonsterNote-Data-dev/AccountsTableName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AccountsTableName"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:73:3)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381: in vitest...",
+        "new Promise (:)",
+        "...vitest..."
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/AccountsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AccountsTable81C15AE5"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:43:22)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/ReportListItemsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ReportListItemsTable16E0D7C4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:49:29)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/DetectionResultsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DetectionResultsTable26068E2F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:63:30)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/ReportFootprintsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ReportFootprintsTable150A9BCC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:68:30)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/DuplicateSuspicionsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DuplicateSuspicionsTableF37D5CE5"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:75:33)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/PhotosTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PhotosTable7E3E5302"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:83:15)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/ReportsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ReportsTable282F2283"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:84:16)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/SubmissionKeysTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SubmissionKeysTableCC47043D"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:85:23)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/ReviewDecisionsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ReviewDecisionsTableEAD6AFFA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:86:24)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/ProcessedEventsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ProcessedEventsTableDB56AE4A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:89:24)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/SettingsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SettingsTable4DB0CCD0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:96:17)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/DetectionRateLimitsTable/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DetectionRateLimitsTable65644F68"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "table (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:36:7)",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:98:28)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/PhotoBucket/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PhotoBucket465738B3"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Bucket2 in aws-cdk-lib...",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:103:24)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u1.test.ts:23:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)",
+        "...vitest..."
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"AccountsTable81C15AE5\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttAccountsTable81C15AE5Arn5A2B2F3F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"AccountsTable81C15AE5\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefAccountsTable81C15AE513FE60D6"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"SettingsTable4DB0CCD0\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttSettingsTable4DB0CCD0Arn1D1BE79B"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"SettingsTable4DB0CCD0\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefSettingsTable4DB0CCD0297D747B"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"ReportFootprintsTable150A9BCC\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttReportFootprintsTable150A9BCCArn03F5A7F6"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"DuplicateSuspicionsTableF37D5CE5\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttDuplicateSuspicionsTableF37D5CE5Arn123AB351"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"ReviewDecisionsTableEAD6AFFA\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttReviewDecisionsTableEAD6AFFAArnC3F4253A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"ReportFootprintsTable150A9BCC\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefReportFootprintsTable150A9BCC5918F695"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"DuplicateSuspicionsTableF37D5CE5\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefDuplicateSuspicionsTableF37D5CE5C4855FCD"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"ReviewDecisionsTableEAD6AFFA\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefReviewDecisionsTableEAD6AFFA7481ECC6"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"PhotosTable7E3E5302\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttPhotosTable7E3E5302Arn6D73F1A2"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"ReportsTable282F2283\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttReportsTable282F2283Arn95C8A393"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"SubmissionKeysTableCC47043D\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttSubmissionKeysTableCC47043DArn02EA798B"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"DetectionResultsTable26068E2F\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttDetectionResultsTable26068E2FArn63874911"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"DetectionRateLimitsTable65644F68\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttDetectionRateLimitsTable65644F68Arn42B88702"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"PhotoBucket465738B3\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttPhotoBucket465738B3ArnBE552CFC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"PhotosTable7E3E5302\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefPhotosTable7E3E5302EE36F7EB"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"ReportsTable282F2283\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefReportsTable282F228301302D83"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"SubmissionKeysTableCC47043D\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefSubmissionKeysTableCC47043D0003A214"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"DetectionResultsTable26068E2F\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefDetectionResultsTable26068E2FC2AA6B46"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"DetectionRateLimitsTable65644F68\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefDetectionRateLimitsTable65644F68F22F8378"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"PhotoBucket465738B3\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefPhotoBucket465738B3809BC70E"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"ReportListItemsTable16E0D7C4\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttReportListItemsTable16E0D7C4Arn18416293"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"ReportListItemsTable16E0D7C4\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefReportListItemsTable16E0D7C40B38D99A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"ProcessedEventsTableDB56AE4A\",\"Arn\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttProcessedEventsTableDB56AE4AArn27732F2B"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Ref\":\"ProcessedEventsTableDB56AE4A\"}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputRefProcessedEventsTableDB56AE4A18A34B39"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/Exports/Output{\"Fn::GetAtt\":[\"PhotoBucket465738B3\",\"RegionalDomainName\"]}": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "ExportsOutputFnGetAttPhotoBucket465738B3RegionalDomainName95851A47"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-Data-dev/PhotoBucket/Policy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "PhotoBucketPolicy60C1073C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Bucket2 in aws-cdk-lib...",
+        "new DataStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/data-stack.ts:103:24)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:41:16)"
+      ]
+    }
+  ]
+}

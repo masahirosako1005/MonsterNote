@@ -45,6 +45,13 @@ export interface ReviewStatusChangedData {
   changedAt: string;
 }
 
+/** duplicate.suspected の中身（C14。U2）。疑いの組ごとに reportId 側・matchedReportId 側で 2 つ送る */
+export interface DuplicateSuspectedData {
+  reportId: string;
+  matchedReportId: string;
+  kind: 'place-time' | 'photo' | 'moon-ring';
+}
+
 export class EventPublishError extends Error {
   constructor(
     readonly eventType: string,

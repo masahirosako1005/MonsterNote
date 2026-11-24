@@ -1,0 +1,199 @@
+{
+  "/MonsterNote-WebContent-dev": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:49:22)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381: in vitest...",
+        "new Promise (:)",
+        "...vitest..."
+      ]
+    },
+    {
+      "type": "aws:cdk:templateFile",
+      "data": "MonsterNote-WebContent-dev.template.json"
+    }
+  ],
+  "/MonsterNote-WebContent-dev/DeploymentLogs": [
+    {
+      "type": "aws:cdk:is-custom-resource-handler-logGroup",
+      "data": true
+    },
+    {
+      "type": "aws:cdk:is-custom-resource-handler-logGroup",
+      "data": true
+    }
+  ],
+  "/MonsterNote-WebContent-dev/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C128MiB": [
+    {
+      "type": "aws:cdk:is-custom-resource-handler-singleton",
+      "data": true
+    },
+    {
+      "type": "aws:cdk:is-custom-resource-handler-runtime-family",
+      "data": 2
+    },
+    {
+      "type": "aws:cdk:is-custom-resource-handler-singleton",
+      "data": true
+    },
+    {
+      "type": "aws:cdk:is-custom-resource-handler-runtime-family",
+      "data": 2
+    }
+  ],
+  "/MonsterNote-WebContent-dev/BootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "BootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-WebContent-dev/CheckBootstrapVersion": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CheckBootstrapVersion"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-WebContent-dev/DeploymentLogs/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "DeploymentLogsE85F76B8"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new LogGroup2 in aws-cdk-lib...",
+        "new WebContentStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:27:22)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:49:22)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20:1)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1690: in vitest...",
+        "file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2231 (:)",
+        "...file:///home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381: in vitest...",
+        "new Promise (:)"
+      ]
+    }
+  ],
+  "/MonsterNote-WebContent-dev/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C128MiB/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C128MiB3A26E370"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new BucketDeployment2 in aws-cdk-lib...",
+        "deploy (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:32:7)",
+        "new WebContentStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:40:5)"
+      ]
+    }
+  ],
+  "/MonsterNote-WebContent-dev/HunterDeployment/AwsCliLayer/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HunterDeploymentAwsCliLayer1E30DE8D"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new BucketDeployment2 in aws-cdk-lib...",
+        "deploy (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:32:7)",
+        "new WebContentStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:40:5)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:49:22)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20:1)"
+      ]
+    }
+  ],
+  "/MonsterNote-WebContent-dev/HunterDeployment/CustomResource-128MiB/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HunterDeploymentCustomResource128MiBCA4578EC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new BucketDeployment2 in aws-cdk-lib...",
+        "deploy (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:32:7)",
+        "new WebContentStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:40:5)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:49:22)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20:1)",
+        "...vitest..."
+      ]
+    }
+  ],
+  "/MonsterNote-WebContent-dev/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C128MiB/ServiceRole/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C128MiBServiceRole1FC795E1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ],
+  "/MonsterNote-WebContent-dev/RequesterDeployment/AwsCliLayer/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RequesterDeploymentAwsCliLayerE0EFA891"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new BucketDeployment2 in aws-cdk-lib...",
+        "deploy (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:32:7)",
+        "new WebContentStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:41:5)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:49:22)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20:1)"
+      ]
+    }
+  ],
+  "/MonsterNote-WebContent-dev/RequesterDeployment/CustomResource-128MiB/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "RequesterDeploymentCustomResource128MiBDA2F9C74"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new BucketDeployment2 in aws-cdk-lib...",
+        "deploy (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:32:7)",
+        "new WebContentStack (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/web-content-stack.ts:41:5)",
+        "buildMonsterNote (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/lib/monsternote.ts:49:22)",
+        "/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20: (/home/masahiro/Project/Claude/20261123_AIDLC/.aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate/infra/test/stacks.u2.test.ts:20:1)",
+        "...vitest..."
+      ]
+    }
+  ],
+  "/MonsterNote-WebContent-dev/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C128MiB/ServiceRole/DefaultPolicy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C128MiBServiceRoleDefaultPolicy0ED8B382"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...aws-cdk-lib...",
+        "(no user code in 10 frames, use --stack-trace-limit to capture more)"
+      ]
+    }
+  ]
+}

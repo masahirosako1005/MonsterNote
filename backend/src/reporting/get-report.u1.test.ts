@@ -26,13 +26,19 @@ const report = {
   hunterAccountId: 'hunter-a',
   hunterNumber: '123',
   capturedAt: '2026-11-23T03:00:00.000Z',
-  capturedAtSource: 'device',
+  capturedAtSource: 'exif',
   location: { lat: 35, lng: 135 },
-  locationSource: 'device',
+  locationSource: 'exif',
+  manualEntry: false,
   species: 'boar',
+  autoDetectionOutcome: 'undetected',
   sex: 'male',
+  ageClass: 'adult',
+  captureMethod: 'trap',
+  confirmedNotDuplicate: false,
   submittedAt: '2026-11-23T03:00:00.000Z',
   bodyPhotoId: 'photo-1',
+  tailPhotoId: 'photo-2',
   eventSent: true,
 };
 const photo = {
@@ -46,6 +52,12 @@ const photo = {
   uploadStatus: 'uploaded',
   uploadedAt: '2026-11-23T03:00:00.000Z',
 };
+const tailPhoto = {
+  ...photo,
+  photoId: 'photo-2',
+  kind: 'tail',
+  storageKey: 'photos/hunter-a/photo-2',
+};
 
 const get = (claims: Record<string, string>, reportId = 'report-1') =>
   handler(
@@ -56,11 +68,16 @@ const bodyOf = (res: { body?: string }) => JSON.parse(res.body ?? '{}') as Recor
 beforeEach(() => {
   ddbMock.reset();
   ddbMock.on(GetCommand, { TableName: 'Reports' }).resolves({ Item: report });
-  ddbMock.on(GetCommand, { TableName: 'Photos' }).resolves({ Item: photo });
+  ddbMock.on(GetCommand, { TableName: 'Photos', Key: { photoId: 'photo-1' } }).resolves({
+    Item: photo,
+  });
+  ddbMock.on(GetCommand, { TableName: 'Photos', Key: { photoId: 'photo-2' } }).resolves({
+    Item: tailPhoto,
+  });
 });
 
 describe('GET /v1/reports/{reportId}', () => {
-  it('依頼元はすべての報告の詳細と、写真の表示用 URL（15 分）を読める', async () => {
+  it('依頼元はすべての報告の詳細（成獣／幼獣・捕獲の方法を含む）と、写真（全身・尻尾）の表示用 URL（15 分）を読める（U2）', async () => {
     const res = await get(requesterClaims());
     expect(res.statusCode).toBe(200);
     const b = bodyOf(res);
@@ -70,15 +87,15 @@ describe('GET /v1/reports/{reportId}', () => {
       hunterNumber: '123',
       species: 'boar',
       sex: 'male',
+      ageClass: 'adult',
+      captureMethod: 'trap',
       capturedAt: '2026-11-23T03:00:00.000Z',
       location: { lat: 35, lng: 135 },
     });
     const photos = b.photos as { kind: string; url: string; expiresInSeconds: number }[];
-    expect(photos).toHaveLength(1);
-    expect(photos[0]?.kind).toBe('body');
+    expect(photos.map((p) => p.kind).sort()).toEqual(['body', 'tail']);
     expect(photos[0]?.expiresInSeconds).toBe(900);
-    expect(photos[0]?.url).toContain('photos/hunter-a/photo-1');
-    expect(photos[0]?.url).toContain('X-Amz-Expires=900');
+    expect(photos.some((p) => p.url.includes('X-Amz-Expires=900'))).toBe(true);
   });
 
   it('ハンターは自分の報告を読める', async () => {

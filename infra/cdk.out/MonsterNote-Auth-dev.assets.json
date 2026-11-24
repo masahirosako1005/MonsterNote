@@ -1,0 +1,21 @@
+{
+  "version": "55.0.0",
+  "files": {
+    "801e2a1a39fbbb825da6fd5e8f071610646a5d98d3428b60c15153985846fd95": {
+      "displayName": "MonsterNote-Auth-dev Template",
+      "source": {
+        "path": "MonsterNote-Auth-dev.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "611913894230-ap-northeast-1-cafa7443": {
+          "bucketName": "cdk-mnote-assets-611913894230-ap-northeast-1",
+          "objectKey": "801e2a1a39fbbb825da6fd5e8f071610646a5d98d3428b60c15153985846fd95.json",
+          "region": "ap-northeast-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::611913894230:role/cdk-mnote-file-publishing-role-611913894230-ap-northeast-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

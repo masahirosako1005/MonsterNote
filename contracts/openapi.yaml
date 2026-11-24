@@ -1,6 +1,14 @@
 # MonsterNote の画面向けの API（共通の約束の置き場。contract-summary C1〜C4・C16）。
 # U1 で作った道と項目を書く。持ち主の Unit が足していく（contract-summary 6: 足すだけの変更はいつでもよい）。
 # U1 での変更: C2 POST /v1/photos の応答に uploadFields を足した（署名付きの POST）。capturedAt・location の source に device を足した。
+# U2 での変更（functional-spec.md「7. 約束との違い」D-1〜D-7）:
+#   - POST /v1/photos: 受け付ける形式を image/jpeg だけにした（D-4。端末で縮小してから送る）
+#   - POST /v1/photos/{photoId}/complete: 全身の写真（kind=body）は種類の判別の結果を応答に含める（BR6.2）
+#   - POST /v1/reports: 尻尾の写真・capturedAt・capturedAtSource・locationSource・ageClass・captureMethod を必須にし、
+#     chestPhotoMissing・confirmedNotDuplicate を足した。Source から device を外した（exif・manual だけ）。
+#     422 の理由に「写真の期限切れ」（D-5）を、409 に DUPLICATE_SUSPECTED（BR7.1）を足した
+#   - GET /v1/report-settings（新規。ADR-010）・GET /v1/duplicates/{reportId}（新規。C5・BR8.9）を足した
+#   - GET /v1/reports/{reportId} の応答に重複の疑いの印は持たせない（D-7。疑いは C5 で、一覧の印は C14 で届く）
 openapi: 3.0.3
 info:
   title: MonsterNote API
@@ -75,7 +83,7 @@ paths:
   /v1/photos:
     post:
       tags: [Reporting]
-      summary: 写真のアップロードの準備（ハンター。BR2.2）
+      summary: 写真のアップロードの準備（ハンター。BR2.2・D-4）
       requestBody:
         required: true
         content:
@@ -85,8 +93,18 @@ paths:
               required: [kind, contentType, sizeBytes]
               properties:
                 kind: { type: string, enum: [body, tail, chest] }
-                contentType: { type: string, enum: [image/jpeg, image/png, image/heic] }
+                contentType:
+                  type: string
+                  enum: [image/jpeg]
+                  description: U2（D-4）端末で JPEG に縮小してから送るため、サーバーは JPEG だけを受け付ける
                 sizeBytes: { type: integer, minimum: 1, maximum: 15728640 }
+                exifCapturedAt:
+                  type: string
+                  format: date-time
+                  description: U2（BR2.10）。画面が縮小の前に読み取った撮影日時。無ければ空
+                exifLocation:
+                  allOf: [{ $ref: '#/components/schemas/GeoPoint' }]
+                  description: U2（BR2.10）。同上の撮影位置
       responses:
         '201':
           description: 写真の ID と、署名付きの POST の URL と項目（期限 5 分）
@@ -108,43 +126,70 @@ paths:
   /v1/photos/{photoId}/complete:
     post:
       tags: [Reporting]
-      summary: アップロードの完了の知らせ（BR2.9。実物の大きさと形式を確かめる）
+      summary: アップロードの完了の知らせ（BR2.9。実物の大きさと形式を確かめる。全身の写真は判別する。BR6.2）
       parameters:
         - { name: photoId, in: path, required: true, schema: { type: string } }
       responses:
         '200':
-          description: アップロード済み（U1 は種類の判別の結果なし）
+          description: アップロード済み。全身の写真（kind=body）は判別の結果を含む（U2・BR6.2〜BR6.4）
           content:
             application/json:
               schema:
                 type: object
+                required: [photoId, uploadStatus]
                 properties:
                   photoId: { type: string }
                   uploadStatus: { type: string, enum: [uploaded] }
+                  detection: { $ref: '#/components/schemas/DetectionResult' }
         '403': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
         '422': { $ref: '#/components/responses/Error' }
   /v1/reports:
     post:
       tags: [Reporting]
-      summary: 報告の送信（ハンター。BR2.1〜BR2.7）
+      summary: 報告の送信（ハンター。BR2.1〜BR2.7・BR2.11〜BR2.20・BR7.1・BR7.2）
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [submissionKey, photos, location, species, sex]
+              required:
+                [
+                  submissionKey,
+                  photos,
+                  capturedAt,
+                  capturedAtSource,
+                  location,
+                  locationSource,
+                  species,
+                  sex,
+                  ageClass,
+                  captureMethod,
+                ]
               properties:
                 submissionKey: { type: string, minLength: 8, maxLength: 128 }
                 photos:
                   type: object
-                  required: [body]
+                  required: [body, tail]
                   properties:
                     body: { type: string }
+                    tail: { type: string }
+                    chest: { type: string, description: クマで撮れたときだけ（BR2.17・BR2.18） }
+                capturedAt: { type: string, format: date-time }
+                capturedAtSource: { $ref: '#/components/schemas/Source' }
                 location: { $ref: '#/components/schemas/GeoPoint' }
+                locationSource: { $ref: '#/components/schemas/Source' }
                 species: { $ref: '#/components/schemas/Species' }
                 sex: { type: string, enum: [male, female, unknown] }
+                ageClass: { $ref: '#/components/schemas/AgeClass' }
+                captureMethod: { $ref: '#/components/schemas/CaptureMethod' }
+                chestPhotoMissing:
+                  type: boolean
+                  description: species=bear で胸の写真を撮らなかったとき true（BR2.17）
+                confirmedNotDuplicate:
+                  type: boolean
+                  description: 送信前の重複の知らせで「別の個体なので送る」を選んだあとの送り直し（BR7.2）
       responses:
         '201':
           description: 保存した
@@ -158,9 +203,56 @@ paths:
               schema: { $ref: '#/components/schemas/ReportId' }
         '400': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
-        '409': { $ref: '#/components/responses/Error' }
-        '422': { $ref: '#/components/responses/Error' }
+        '409':
+          description: >
+            SUBMISSION_IN_PROGRESS（処理中。2 秒後に送り直す）、または U2 の DUPLICATE_SUSPECTED
+            （近くで同じ種類・時期の報告がある。BR7.1。conflict.matches に相手の種類・捕獲日時・
+            おおよその距離だけを返す。氏名・写真は返さない。BR7.3）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: 業務の決まりに合わない（7 日より前・未来・対象地域の外・写真の期限切れ（D-5）・同意していない）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
         '500': { $ref: '#/components/responses/Error' }
+  /v1/report-settings:
+    get:
+      tags: [Reporting]
+      summary: U2（新規）。報告の作成に必要な設定（対象地域）。ハンター（ADR-010）
+      responses:
+        '200':
+          description: 対象地域（四角い範囲）
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [targetArea]
+                properties:
+                  targetArea: { $ref: '#/components/schemas/TargetArea' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /v1/duplicates/{reportId}:
+    get:
+      tags: [DuplicateDetection]
+      summary: U2（新規）。重複の疑いの相手の一覧（依頼元だけ。BR8.9・C5）
+      parameters:
+        - { name: reportId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: 疑いの一覧（相手の reportId・距離・時間差・相手の状態。D-6・BR8.8）
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [reportId, matches]
+                properties:
+                  reportId: { type: string }
+                  matches:
+                    type: array
+                    items: { $ref: '#/components/schemas/DuplicateMatch' }
+        '403': { $ref: '#/components/responses/Error' }
   /v1/reports/{reportId}:
     get:
       tags: [Reporting]
@@ -309,8 +401,49 @@ components:
       enum: [bear, boar, deer]
     Source:
       type: string
-      enum: [device, exif, manual]
-      description: 日時と場所の出どころ（U1 で device を足した。U1 は device だけ）
+      enum: [exif, manual]
+      description: >
+        日時と場所の出どころ。U1 は device だけを使っていたが、U2 で exif・manual に変えた
+        （U1 の device は使わなくなった。entities.md）
+    AgeClass:
+      type: string
+      enum: [adult, juvenile]
+      description: U2（新規）
+    CaptureMethod:
+      type: string
+      enum: [trap, gun, other]
+      description: U2（新規）
+    DetectionResult:
+      type: object
+      description: U2（新規）。種類の自動判別の結果（BR6.1）。全身の写真（kind=body）だけが持つ
+      required: [outcome]
+      properties:
+        outcome: { type: string, enum: [detected, undetected] }
+        species: { $ref: '#/components/schemas/Species' }
+        confidence:
+          { type: number, minimum: 0, maximum: 100, description: 百分率（outcome=detected のとき） }
+    TargetArea:
+      type: object
+      description: U2（新規）。対象地域（四角い範囲。D-1）
+      required: [north, south, east, west]
+      properties:
+        north: { type: number, minimum: -90, maximum: 90 }
+        south: { type: number, minimum: -90, maximum: 90 }
+        east: { type: number, minimum: -180, maximum: 180 }
+        west: { type: number, minimum: -180, maximum: 180 }
+    DuplicateMatch:
+      type: object
+      description: U2（新規）。重複の疑いの相手 1 件（D-6）。氏名・写真・reportId は持たない
+      required: [matchedReportId, kind, matchedStatus]
+      properties:
+        matchedReportId: { type: string }
+        kind: { type: string, enum: [place-time, photo, moon-ring] }
+        distanceMeters: { type: integer, minimum: 0, description: 100 m 単位（BR7.3） }
+        hoursApart: { type: number, minimum: 0 }
+        matchedStatus:
+          type: string
+          enum: [checking, approved, rejected]
+          description: 相手の報告の状態（却下も含む。BR8.8・Q7）
     ReportId:
       type: object
       required: [reportId]
@@ -318,12 +451,17 @@ components:
         reportId: { type: string }
     ReportDetail:
       type: object
+      description: >
+        D-7: 重複の疑いの印は持たない。疑いは C5 GET /v1/duplicates/{reportId} で、
+        一覧の印は C14 の知らせ（duplicateSuspected）で届く
       properties:
         reportId: { type: string }
         hunterAccountId: { type: string }
         hunterNumber: { type: string }
         species: { $ref: '#/components/schemas/Species' }
         sex: { type: string, enum: [male, female, unknown] }
+        ageClass: { $ref: '#/components/schemas/AgeClass' }
+        captureMethod: { $ref: '#/components/schemas/CaptureMethod' }
         capturedAt: { type: string, format: date-time }
         capturedAtSource: { $ref: '#/components/schemas/Source' }
         location: { $ref: '#/components/schemas/GeoPoint' }
@@ -331,6 +469,7 @@ components:
         submittedAt: { type: string, format: date-time }
         photos:
           type: array
+          description: U2 で全身・尻尾（必須）・胸（クマで撮れたとき）の最大 3 枚になる
           items:
             type: object
             properties:

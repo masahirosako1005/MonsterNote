@@ -22,6 +22,10 @@ export interface Draft {
   species?: Species;
   sex?: Sex;
   submissionKey?: string;
+  /** 全身の写真の自動判別の結果（BR6.4。種類の選択をこの値で初期化する） */
+  autoDetectionOutcome?: 'detected' | 'undetected';
+  autoDetectedSpecies?: Species;
+  autoDetectionConfidence?: number;
 }
 
 /** 送ったばかりで、まだ一覧に届いていない報告（UC2 の 8） */
@@ -72,4 +76,9 @@ export function newSubmissionKey(): string {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** BR2.19（U2）: 作成中にホームへ戻る前に確かめる。「消す」なら true */
+export function confirmDiscard(): boolean {
+  return window.confirm('写真と入力内容は消えます。よろしいですか？');
 }

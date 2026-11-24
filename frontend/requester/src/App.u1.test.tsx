@@ -54,6 +54,9 @@ describe('RequesterApp', () => {
               },
         ),
       ),
+      http.get(`${API}/v1/duplicates/report-1`, () =>
+        HttpResponse.json({ reportId: 'report-1', matches: [] }),
+      ),
       http.put(`${API}/v1/reviews/report-1/decision`, () => {
         status = 'approved';
         return HttpResponse.json({ reportId: 'report-1', status: 'approved' });
@@ -116,6 +119,9 @@ describe('RequesterApp', () => {
       http.get(`${API}/v1/reports/report-1`, () => HttpResponse.json(report)),
       http.get(`${API}/v1/reviews/report-1`, () =>
         HttpResponse.json({ code: 'REVIEW_NOT_READY', message: 'まだ' }, { status: 404 }),
+      ),
+      http.get(`${API}/v1/duplicates/report-1`, () =>
+        HttpResponse.json({ reportId: 'report-1', matches: [] }),
       ),
       http.put(`${API}/v1/reviews/report-1/decision`, () =>
         HttpResponse.json(

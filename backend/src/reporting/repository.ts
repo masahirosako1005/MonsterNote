@@ -16,7 +16,13 @@ export interface ReportingTables {
 }
 
 export type PhotoKind = 'body' | 'tail' | 'chest';
-export type PhotoContentType = 'image/jpeg' | 'image/png' | 'image/heic';
+/** U2（D-4）: 端末で JPEG に縮小してから送るため、サーバーが受け付けるのは JPEG だけ */
+export type PhotoContentType = 'image/jpeg';
+
+export interface GeoPoint {
+  lat: number;
+  lng: number;
+}
 
 export interface PhotoRecord {
   photoId: string;
@@ -27,11 +33,21 @@ export interface PhotoRecord {
   contentType: PhotoContentType;
   sizeBytes: number;
   uploadStatus: 'pending' | 'uploaded';
+  /** 画面が縮小の前に読み取った撮影日時・位置（BR2.10）。無ければ空 */
+  exifCapturedAt?: string;
+  exifLocation?: GeoPoint;
   uploadedAt: string;
+  /** uploadedAt + 24 時間（Unix 秒。TTL）。報告に結び付くとき外す（BR2.13） */
+  expiresAt?: number;
 }
 
 export type Species = 'bear' | 'boar' | 'deer';
 export type Sex = 'male' | 'female' | 'unknown';
+export type AgeClass = 'adult' | 'juvenile';
+export type CaptureMethod = 'trap' | 'gun' | 'other';
+/** U2（entities.md）: capturedAt・location の出どころ。U1 の device はやめる */
+export type FieldSource = 'exif' | 'manual';
+export type DetectionOutcome = 'detected' | 'undetected';
 
 export interface ReportRecord {
   reportId: string;
@@ -39,14 +55,30 @@ export interface ReportRecord {
   hunterAccountId: string;
   hunterNumber: string;
   capturedAt: string;
-  capturedAtSource: 'device' | 'exif' | 'manual';
-  location: { lat: number; lng: number };
-  locationSource: 'device' | 'exif' | 'manual';
+  capturedAtSource: FieldSource;
+  location: GeoPoint;
+  locationSource: FieldSource;
+  placeName?: string;
+  /** capturedAtSource か locationSource のどちらかが manual なら true（BR2.12） */
+  manualEntry: boolean;
   species: Species;
+  autoDetectedSpecies?: Species;
+  autoDetectionOutcome: DetectionOutcome;
+  autoDetectionConfidence?: number;
   sex: Sex;
+  ageClass: AgeClass;
+  captureMethod: CaptureMethod;
+  /** species=bear のときだけ使う。胸の写真を撮らなかった印（BR2.17） */
+  chestPhotoMissing?: boolean;
+  /** 送信前の重複の知らせで「別の個体なので送る」を選んだか（BR7.2） */
+  confirmedNotDuplicate: boolean;
   submittedAt: string;
   /** 全身の写真（kind=body）の ID。report.saved の bodyPhotoId（C12）と詳細の写真の表示に使う */
   bodyPhotoId: string;
+  /** 尻尾の写真（kind=tail）の ID。U2 で必須（BR2.17） */
+  tailPhotoId: string;
+  /** 胸の写真（kind=chest）の ID。クマで撮れたときだけ（BR2.17） */
+  chestPhotoId?: string;
   /** report.saved を送ったか（reliability-design NFR10.3） */
   eventSent: boolean;
 }
@@ -158,8 +190,16 @@ export function createReportingRepository(ddb: DynamoDBDocumentClient, tables: R
       }
     },
 
-    /** 報告の保存・送信のキーの「保存済み」・写真の reportId を 1 つのトランザクションで書く */
+    /**
+     * 報告の保存・送信のキーの「保存済み」・写真（全身・尻尾・胸）の reportId を 1 つのトランザクションで書く。
+     * 写真の記録がまだあること（attribute_exists(photoId)）を条件にする（reliability-design NFR10.14。
+     * BR2.13 の自動削除〈TTL〉が先に消していれば、このトランザクションは失敗し、報告は保存されない）。
+     * reportId を入れるのとあわせて expiresAt を外す（BR2.13）。
+     */
     async saveReport(report: ReportRecord): Promise<void> {
+      const photoIds = [report.bodyPhotoId, report.tailPhotoId, report.chestPhotoId].filter(
+        (id): id is string => typeof id === 'string' && id.length > 0,
+      );
       await ddb.send(
         new TransactWriteCommand({
           TransactItems: [
@@ -185,20 +225,20 @@ export function createReportingRepository(ddb: DynamoDBDocumentClient, tables: R
                 },
               },
             },
-            {
+            ...photoIds.map((photoId) => ({
               Update: {
                 TableName: tables.photos,
-                Key: { photoId: report.bodyPhotoId },
-                UpdateExpression: 'SET reportId = :reportId',
+                Key: { photoId },
+                UpdateExpression: 'SET reportId = :reportId REMOVE expiresAt',
                 ConditionExpression:
-                  'uploadedByAccountId = :hunter AND uploadStatus = :uploaded AND attribute_not_exists(reportId)',
+                  'uploadedByAccountId = :hunter AND uploadStatus = :uploaded AND attribute_exists(photoId) AND attribute_not_exists(reportId)',
                 ExpressionAttributeValues: {
                   ':reportId': report.reportId,
                   ':hunter': report.hunterAccountId,
                   ':uploaded': 'uploaded',
                 },
               },
-            },
+            })),
           ],
         }),
       );

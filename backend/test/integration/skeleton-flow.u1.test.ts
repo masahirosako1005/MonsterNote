@@ -17,6 +17,7 @@ import {
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 import { HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { RekognitionClient } from '@aws-sdk/client-rekognition';
 import type {
   EventEnvelope,
   ReportSavedData,
@@ -28,6 +29,7 @@ import { createProcessedEvents } from '../../src/shared/processed-events';
 import { createReportingRepository } from '../../src/reporting/repository';
 import { createPhotoRoutes } from '../../src/reporting/photos';
 import { createSubmitRoutes } from '../../src/reporting/submit';
+import { createSpeciesDetectionRepository } from '../../src/species-detection/repository';
 import { createReviewRepository } from '../../src/review/repository';
 import { createReviewOnSaved } from '../../src/review/on-saved';
 import { createDecisionRoutes } from '../../src/review/decision';
@@ -36,6 +38,7 @@ import { createCatalogOnSaved } from '../../src/catalog/on-saved';
 import { createCatalogOnStatus } from '../../src/catalog/on-status';
 import { createListRoutes } from '../../src/catalog/list';
 import { apiEvent, busEvent, hunterClaims, requesterClaims } from '../helpers/events';
+import { u2Tables } from '../helpers/tables';
 
 // CommonJS のパッケージのため、default と名前付きのどちらで読まれても使えるようにする
 const DynamoDbLocal =
@@ -115,6 +118,7 @@ const tables: CreateTableCommandInput[] = [
     ],
     BillingMode: 'PAY_PER_REQUEST',
   },
+  ...u2Tables,
 ];
 
 describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => {
@@ -122,20 +126,42 @@ describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => 
   const ddb = DynamoDBDocumentClient.from(raw);
   const eventBridge = new EventBridgeClient({ region, credentials });
   const s3 = new S3Client({ region, credentials });
+  const rekognition = new RekognitionClient({ region, credentials });
   const silent = createLogger('it', () => undefined);
   const reportingRepo = createReportingRepository(ddb, {
     photos: 'Photos',
     reports: 'Reports',
     submissionKeys: 'SubmissionKeys',
   });
+  const detectionRepo = createSpeciesDetectionRepository(ddb, 'DetectionResults');
   const reviewRepo = createReviewRepository(ddb, 'ReviewDecisions');
   const catalogRepo = createCatalogRepository(ddb, 'ReportListItems');
+  // U2 の対象地域・重複の判定は別の結合の試験で確かめる。ここでは常に許す値を返す
+  const permissiveSettings = async () => ({
+    settingKey: 'default',
+    duplicateDistanceMeters: 1000,
+    duplicateWindowHours: 24,
+    targetAreaNorth: 90,
+    targetAreaSouth: -90,
+    targetAreaEast: 180,
+    targetAreaWest: -180,
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  });
+  const noDuplicate = async () => ({ suspected: false, matches: [] });
 
   const api = createHttpHandler(
     {
-      ...createPhotoRoutes({ repo: reportingRepo, s3, bucket: 'photo-bucket' }),
+      ...createPhotoRoutes({
+        repo: reportingRepo,
+        detectionRepo,
+        rekognition,
+        rateLimiter: { tryConsume: async () => false }, // 結合の試験では Rekognition を呼ばない
+        s3,
+        bucket: 'photo-bucket',
+      }),
       ...createSubmitRoutes({
         repo: reportingRepo,
+        detectionRepo,
         eventBridge,
         busName: 'bus',
         eligibility: async () => ({
@@ -143,6 +169,8 @@ describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => 
           hunterNumber: '123',
           displayName: 'ハンター A',
         }),
+        settings: permissiveSettings,
+        duplicateCheck: noDuplicate,
         logger: silent,
         publishOptions: { sleep: async () => undefined },
       }),
@@ -182,12 +210,15 @@ describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => 
       .map((e) => JSON.parse(e?.Detail ?? '{}') as EventEnvelope<T>);
   }
 
-  async function uploadPhoto(hunter: string): Promise<string> {
+  async function uploadPhoto(
+    hunter: string,
+    kind: 'body' | 'tail' | 'chest' = 'body',
+  ): Promise<string> {
     const created = await api(
       apiEvent({
         routeKey: 'POST /v1/photos',
         claims: hunterClaims(hunter),
-        body: { kind: 'body', contentType: 'image/jpeg', sizeBytes: 1000 },
+        body: { kind, contentType: 'image/jpeg', sizeBytes: 1000 },
       }),
     );
     const { photoId } = JSON.parse(created.body ?? '{}') as { photoId: string };
@@ -203,17 +234,27 @@ describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => 
     return photoId;
   }
 
-  const submit = (hunter: string, photoId: string, submissionKey: string) =>
+  /** U2 の完全な報告の送信（全身・尻尾の写真、種類・雌雄・成獣／幼獣・捕獲の方法・捕獲日時・場所） */
+  const submit = (
+    hunter: string,
+    photoIds: { body: string; tail: string },
+    submissionKey: string,
+  ) =>
     api(
       apiEvent({
         routeKey: 'POST /v1/reports',
         claims: hunterClaims(hunter),
         body: {
           submissionKey,
-          photos: { body: photoId },
+          photos: { body: photoIds.body, tail: photoIds.tail },
+          capturedAt: '2026-11-22T12:00:00.000Z',
+          capturedAtSource: 'exif',
           location: { lat: 35, lng: 135 },
+          locationSource: 'exif',
           species: 'boar',
           sex: 'male',
+          ageClass: 'adult',
+          captureMethod: 'trap',
         },
       }),
     );
@@ -261,8 +302,9 @@ describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => 
   });
 
   it('写真の受け付け → 送信 → report.saved → 一覧に「確認中」→ 承認 → 一覧が「承認」', async () => {
-    const photoId = await uploadPhoto('hunter-a');
-    const res = await submit('hunter-a', photoId, 'sub-key-it-0001');
+    const body = await uploadPhoto('hunter-a', 'body');
+    const tail = await uploadPhoto('hunter-a', 'tail');
+    const res = await submit('hunter-a', { body, tail }, 'sub-key-it-0001');
     expect(res.statusCode).toBe(201);
     const { reportId } = JSON.parse(res.body ?? '{}') as { reportId: string };
 
@@ -293,9 +335,10 @@ describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => 
   });
 
   it('同じ送信のキーの二重送信は 1 件だけ作り、同じ reportId を返す', async () => {
-    const photoId = await uploadPhoto('hunter-a');
-    const first = await submit('hunter-a', photoId, 'sub-key-it-0002');
-    const second = await submit('hunter-a', photoId, 'sub-key-it-0002');
+    const body = await uploadPhoto('hunter-a', 'body');
+    const tail = await uploadPhoto('hunter-a', 'tail');
+    const first = await submit('hunter-a', { body, tail }, 'sub-key-it-0002');
+    const second = await submit('hunter-a', { body, tail }, 'sub-key-it-0002');
     expect(first.statusCode).toBe(201);
     expect(second.statusCode).toBe(200);
     expect(JSON.parse(second.body ?? '{}')).toEqual(JSON.parse(first.body ?? '{}'));
@@ -303,9 +346,10 @@ describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => 
   });
 
   it('2 人の依頼元が同時に承認しても、先の 1 人だけが有効（もう 1 人は 409）', async () => {
-    const photoId = await uploadPhoto('hunter-a');
+    const body = await uploadPhoto('hunter-a', 'body');
+    const tail = await uploadPhoto('hunter-a', 'tail');
     const { reportId } = JSON.parse(
-      (await submit('hunter-a', photoId, 'sub-key-it-0003')).body ?? '{}',
+      (await submit('hunter-a', { body, tail }, 'sub-key-it-0003')).body ?? '{}',
     );
     await reviewOnSaved(busEvent('report.saved', sentEvents<ReportSavedData>('report.saved')[0]!));
     const decide = (sub: string) =>
@@ -322,9 +366,10 @@ describe.skipIf(!javaAvailable)('細い版の流れ（DynamoDB Local）', () => 
   });
 
   it('状態の知らせが保存の知らせより先に届いても、保存のあとで「承認」として一覧に出る。ハンターは他人の報告を見ない', async () => {
-    const photoId = await uploadPhoto('hunter-a');
+    const body = await uploadPhoto('hunter-a', 'body');
+    const tail = await uploadPhoto('hunter-a', 'tail');
     const { reportId } = JSON.parse(
-      (await submit('hunter-a', photoId, 'sub-key-it-0004')).body ?? '{}',
+      (await submit('hunter-a', { body, tail }, 'sub-key-it-0004')).body ?? '{}',
     );
     const saved = sentEvents<ReportSavedData>('report.saved')[0]!;
     await catalogOnStatus(

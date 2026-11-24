@@ -40,10 +40,14 @@ async function reportOne(page: Page) {
   await page
     .getByTestId('photo-input')
     .setInputFiles({ name: 'body.png', mimeType: 'image/png', buffer: PNG });
+  // U2: アップロードの完了で判別の結果（またはできなかった旨）を見せてから次へ進む（BR6.2〜BR6.4）
+  await expect(page.getByTestId('detection-result')).toBeVisible();
+  await page.getByTestId('photo-next').click();
   await page.getByTestId('species-boar').click();
   await page.getByTestId('sex-male').click();
   await page.getByTestId('choice-next').click();
-  await expect(page.getByTestId('location-ok')).toBeVisible();
+  // U2: 位置は地図（MapPicker）で指す
+  await expect(page.getByTestId('map-tiles')).toBeVisible();
   await page.getByTestId('submit-report').click();
   await expect(page.getByTestId('report-done')).toContainText('送りました');
 }

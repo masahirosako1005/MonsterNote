@@ -28,6 +28,13 @@ const ENV = {
   REVIEW_DECISIONS_TABLE: 'ReviewDecisions',
   REPORT_LIST_ITEMS_TABLE: 'ReportListItems',
   PROCESSED_EVENTS_TABLE: 'ProcessedEvents',
+  DETECTION_RESULTS_TABLE: 'DetectionResults',
+  DETECTION_RATE_LIMITS_TABLE: 'DetectionRateLimits',
+  REPORT_FOOTPRINTS_TABLE: 'ReportFootprints',
+  DUPLICATE_SUSPICIONS_TABLE: 'DuplicateSuspicions',
+  SETTINGS_TABLE: 'Settings',
+  SETTINGS_FUNCTION_NAME: 'settings-fn',
+  DUPLICATE_DETECTION_FUNCTION_NAME: 'duplicate-detection-fn',
 };
 
 beforeEach(() => {

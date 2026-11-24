@@ -42,6 +42,11 @@ export function sessionHandlers(role: 'hunter' | 'requester', displayName = '利
   ];
 }
 
+/** U2（新規）: 対象地域（GET /v1/report-settings）。既定は日本のおおよその範囲 */
+export function reportSettingsHandler(area = { north: 46, south: 20, east: 154, west: 122 }) {
+  return http.get(`${API}/v1/report-settings`, () => HttpResponse.json({ targetArea: area }));
+}
+
 export function listItem(i: number, status = 'checking') {
   const at = new Date(Date.UTC(2026, 10, 23, 3, 0, 0) - i * 60_000).toISOString();
   return {

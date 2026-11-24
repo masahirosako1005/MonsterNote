@@ -55,6 +55,10 @@ interface Report {
 }
 
 let reports: Report[] = [];
+// U2: 写真ごとの kind（判別は全身の写真だけ。BR6.2）
+const photoKinds = new Map<string, string>();
+// U2: 次の全身の写真の判別の結果（試験が POST /__set-detection で切り替える。既定は「判別できた」）
+let nextDetectionOutcome: 'detected' | 'undetected' = 'detected';
 
 // 1x1 の PNG（写真の表示用）
 const PNG = Buffer.from(
@@ -127,6 +131,13 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   if (method === 'OPTIONS') return send(res, 204);
   if (method === 'POST' && path === '/__reset') {
     reports = [];
+    photoKinds.clear();
+    nextDetectionOutcome = 'detected';
+    return send(res, 204);
+  }
+  if (method === 'POST' && path === '/__set-detection') {
+    const body = await readJson(req);
+    nextDetectionOutcome = body.outcome === 'undetected' ? 'undetected' : 'detected';
     return send(res, 204);
   }
   if (method === 'POST' && path === '/__upload') {
@@ -165,7 +176,9 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
 
   if (method === 'POST' && path === '/v1/photos') {
     if (me.role !== 'hunter') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    const body = await readJson(req);
     const photoId = randomUUID();
+    photoKinds.set(photoId, String(body.kind ?? 'body'));
     return send(res, 201, {
       photoId,
       uploadUrl: `${BASE}/__upload`,
@@ -175,14 +188,48 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   }
   const complete = path.match(/^\/v1\/photos\/([^/]+)\/complete$/);
   if (method === 'POST' && complete) {
-    return send(res, 200, { photoId: complete[1], uploadStatus: 'uploaded' });
+    const photoId = complete[1] ?? '';
+    // U2: 全身の写真（kind=body）は種類の判別の結果を返す（BR6.2〜BR6.4）
+    const detection =
+      photoKinds.get(photoId) === 'body'
+        ? nextDetectionOutcome === 'undetected'
+          ? { outcome: 'undetected' }
+          : { outcome: 'detected', species: 'boar', confidence: 92 }
+        : undefined;
+    return send(res, 200, {
+      photoId,
+      uploadStatus: 'uploaded',
+      ...(detection ? { detection } : {}),
+    });
+  }
+
+  if (method === 'GET' && path === '/v1/report-settings') {
+    // U2（新規。ADR-010）: 日本のおおよその範囲（初期値。BR9.3）
+    return send(res, 200, {
+      targetArea: { north: 46, south: 20, east: 154, west: 122 },
+    });
   }
 
   if (method === 'POST' && path === '/v1/reports') {
     if (me.role !== 'hunter') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
     const body = await readJson(req);
-    const existing = reports.find((r) => r.submissionKey === body.submissionKey);
+    const submissionKey = String(body.submissionKey);
+    const existing = reports.find((r) => r.submissionKey === submissionKey);
     if (existing) return send(res, 200, { reportId: existing.reportId });
+    // U2（BR7.1・BR7.2）: すでに同じ種類の報告があり、まだ確認していなければ疑いを返す
+    // （1 件目の報告は必ず通るため、既存の U1 の試験の流れは変えない）
+    const sameSpecies = reports.find((r) => r.species === body.species);
+    if (sameSpecies && body.confirmedNotDuplicate !== true) {
+      return error(res, 409, 'DUPLICATE_SUSPECTED', '近くで同じ種類・時期の報告があります', {
+        matches: [
+          {
+            species: String(body.species),
+            capturedAt: sameSpecies.submittedAt,
+            distanceMeters: 300,
+          },
+        ],
+      });
+    }
     const report: Report = {
       reportId: randomUUID(),
       hunterAccountId: me.accountId,
@@ -192,7 +239,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       location: body.location as { lat: number; lng: number },
       submittedAt: new Date().toISOString(),
       photoId: String((body.photos as { body?: string } | undefined)?.body),
-      submissionKey: String(body.submissionKey),
+      submissionKey,
       status: 'checking',
     };
     reports.unshift(report);
@@ -227,9 +274,11 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       species: r.species,
       sex: r.sex,
       capturedAt: r.submittedAt,
-      capturedAtSource: 'device',
+      capturedAtSource: 'exif',
       location: r.location,
-      locationSource: 'device',
+      locationSource: 'exif',
+      ageClass: 'adult',
+      captureMethod: 'trap',
       submittedAt: r.submittedAt,
       photos: [
         {
@@ -240,6 +289,13 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
         },
       ],
     });
+  }
+
+  // U2（新規。C5）: 重複の疑いの相手の一覧。この E2E のモックでは常に空（重複の試験は別の経路で確かめる）
+  const duplicatesMatch = path.match(/^\/v1\/duplicates\/([^/]+)$/);
+  if (method === 'GET' && duplicatesMatch) {
+    if (me.role !== 'requester') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    return send(res, 200, { reportId: duplicatesMatch[1], matches: [] });
   }
 
   const reviewMatch = path.match(/^\/v1\/reviews\/([^/]+)(\/decision)?$/);

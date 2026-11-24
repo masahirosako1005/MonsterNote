@@ -40,3 +40,19 @@ export async function getReview(api: ApiClient, reportId: string): Promise<Revie
 export async function approve(api: ApiClient, reportId: string): Promise<void> {
   await api.put(`/v1/reviews/${encodeURIComponent(reportId)}/decision`, { decision: 'approved' });
 }
+
+/** C5 GET /v1/duplicates/{reportId}: 重複の疑いの相手の一覧（BR8.9）。氏名・写真は含まない */
+export interface DuplicateMatchView {
+  matchedReportId: string;
+  kind: string;
+  distanceMeters?: number;
+  hoursApart?: number;
+  matchedStatus: ReportStatus;
+}
+
+export function listDuplicates(
+  api: ApiClient,
+  reportId: string,
+): Promise<{ reportId: string; matches: DuplicateMatchView[] }> {
+  return api.get(`/v1/duplicates/${encodeURIComponent(reportId)}`);
+}

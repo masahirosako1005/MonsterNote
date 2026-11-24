@@ -4,7 +4,7 @@ import { Button } from '@mui/material';
 import { BigChoice } from '@ui-kit/components/BigChoice';
 import { StepHeader } from '@ui-kit/components/StepHeader';
 import { SEX_OPTIONS, SPECIES_OPTIONS } from '@ui-kit/labels';
-import { useHunter } from '../context';
+import { confirmDiscard, useHunter } from '../context';
 import { HunterShell } from './HunterShell';
 
 export function ChoicePage() {
@@ -19,8 +19,10 @@ export function ChoicePage() {
         title="種類と雌雄"
         onBack={() => navigate('/report/photo')}
         onCancel={() => {
-          clearDraft();
+          // BR2.19: 消す前に確かめる
+          if (!confirmDiscard()) return;
           navigate('/');
+          setTimeout(clearDraft, 0);
         }}
       />
       <BigChoice

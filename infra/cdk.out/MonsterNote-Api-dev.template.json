@@ -1,0 +1,3922 @@
+{
+ "Resources": {
+  "EventBus7B8748AA": {
+   "Type": "AWS::Events::EventBus",
+   "Properties": {
+    "Name": "monsternote-dev"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/EventBus/Resource"
+   }
+  },
+  "AccountsLogs4107A632": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/AccountsLogs/Resource"
+   }
+  },
+  "AccountsFunctionServiceRole839DC0DB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/AccountsFunction/ServiceRole/Resource"
+   }
+  },
+  "AccountsFunctionServiceRoleDefaultPolicy1656B929": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttAccountsTable81C15AE5Arn5A2B2F3F"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttAccountsTable81C15AE5Arn5A2B2F3F"
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AccountsFunctionServiceRoleDefaultPolicy1656B929",
+    "Roles": [
+     {
+      "Ref": "AccountsFunctionServiceRole839DC0DB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/AccountsFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AccountsFunctionB26F8F43": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "52d49a92787753f2aa7f2bc63b00f77dca288f31f5d068234dc6a3b714f07cea.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "ACCOUNTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefAccountsTable81C15AE513FE60D6"
+      },
+      "USER_POOL_CLIENT_ID": {
+       "Fn::ImportValue": "MonsterNote-Auth-dev:ExportsOutputRefUserPoolWebClient4C9370B02E2C9FF9"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "AccountsLogs4107A632"
+     }
+    },
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "AccountsFunctionServiceRole839DC0DB",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 8
+   },
+   "DependsOn": [
+    "AccountsFunctionServiceRoleDefaultPolicy1656B929",
+    "AccountsFunctionServiceRole839DC0DB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/AccountsFunction/Resource",
+    "aws:asset:path": "asset.52d49a92787753f2aa7f2bc63b00f77dca288f31f5d068234dc6a3b714f07cea",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "SettingsLogs1E95E1B9": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/SettingsLogs/Resource"
+   }
+  },
+  "SettingsFunctionServiceRole50E40BE7": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/SettingsFunction/ServiceRole/Resource"
+   }
+  },
+  "SettingsFunctionServiceRoleDefaultPolicy84F5DCB0": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttSettingsTable4DB0CCD0Arn1D1BE79B"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "SettingsFunctionServiceRoleDefaultPolicy84F5DCB0",
+    "Roles": [
+     {
+      "Ref": "SettingsFunctionServiceRole50E40BE7"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/SettingsFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "SettingsFunction4D2BAE83": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "f71159ba1b7bf74018c2062c570cc42bc936e16997a5694c61ac0da32122336f.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "SETTINGS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefSettingsTable4DB0CCD0297D747B"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "SettingsLogs1E95E1B9"
+     }
+    },
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "SettingsFunctionServiceRole50E40BE7",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 8
+   },
+   "DependsOn": [
+    "SettingsFunctionServiceRoleDefaultPolicy84F5DCB0",
+    "SettingsFunctionServiceRole50E40BE7"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/SettingsFunction/Resource",
+    "aws:asset:path": "asset.f71159ba1b7bf74018c2062c570cc42bc936e16997a5694c61ac0da32122336f",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "DuplicateDetectionLogsB49A5A9E": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionLogs/Resource"
+   }
+  },
+  "DuplicateDetectionFunctionServiceRole2D77C71A": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionFunction/ServiceRole/Resource"
+   }
+  },
+  "DuplicateDetectionFunctionServiceRoleDefaultPolicyE62D96C0": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SettingsFunction4D2BAE83",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SettingsFunction4D2BAE83",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttDuplicateSuspicionsTableF37D5CE5Arn123AB351"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportFootprintsTable150A9BCCArn03F5A7F6"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttDuplicateSuspicionsTableF37D5CE5Arn123AB351"
+           },
+           "/index/*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportFootprintsTable150A9BCCArn03F5A7F6"
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReviewDecisionsTableEAD6AFFAArnC3F4253A"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "DuplicateDetectionFunctionServiceRoleDefaultPolicyE62D96C0",
+    "Roles": [
+     {
+      "Ref": "DuplicateDetectionFunctionServiceRole2D77C71A"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "DuplicateDetectionFunction520BBAB2": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "f79917c95d84afc7d9a7ad95ad21cd8ae8b820942cce9997e17e77abb097b283.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "REPORT_FOOTPRINTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReportFootprintsTable150A9BCC5918F695"
+      },
+      "DUPLICATE_SUSPICIONS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefDuplicateSuspicionsTableF37D5CE5C4855FCD"
+      },
+      "REVIEW_DECISIONS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReviewDecisionsTableEAD6AFFA7481ECC6"
+      },
+      "SETTINGS_FUNCTION_NAME": {
+       "Ref": "SettingsFunction4D2BAE83"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "DuplicateDetectionLogsB49A5A9E"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "DuplicateDetectionFunctionServiceRole2D77C71A",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "DuplicateDetectionFunctionServiceRoleDefaultPolicyE62D96C0",
+    "DuplicateDetectionFunctionServiceRole2D77C71A"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionFunction/Resource",
+    "aws:asset:path": "asset.f79917c95d84afc7d9a7ad95ad21cd8ae8b820942cce9997e17e77abb097b283",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ReportingLogs95680F59": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReportingLogs/Resource"
+   }
+  },
+  "ReportingFunctionServiceRoleB3C74C24": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReportingFunction/ServiceRole/Resource"
+   }
+  },
+  "ReportingFunctionServiceRoleDefaultPolicy5B1316C5": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttDetectionRateLimitsTable65644F68Arn42B88702"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttDetectionResultsTable26068E2FArn63874911"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttPhotosTable7E3E5302Arn6D73F1A2"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportsTable282F2283Arn95C8A393"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttSubmissionKeysTableCC47043DArn02EA798B"
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:Abort*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttPhotoBucket465738B3ArnBE552CFC"
+          },
+          "/*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:GetBucket*",
+        "s3:GetObject*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttPhotoBucket465738B3ArnBE552CFC"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttPhotoBucket465738B3ArnBE552CFC"
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "events:PutEvents",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "EventBus7B8748AA",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "AccountsFunctionB26F8F43",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::GetAtt": [
+          "DuplicateDetectionFunction520BBAB2",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::GetAtt": [
+          "SettingsFunction4D2BAE83",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "AccountsFunctionB26F8F43",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "DuplicateDetectionFunction520BBAB2",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SettingsFunction4D2BAE83",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "rekognition:DetectLabels",
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ReportingFunctionServiceRoleDefaultPolicy5B1316C5",
+    "Roles": [
+     {
+      "Ref": "ReportingFunctionServiceRoleB3C74C24"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReportingFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ReportingFunction0442C421": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "5ae6065becac23632937079eee61029b4b0b70c2e22f84782383e6215f3459d1.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "PHOTOS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefPhotosTable7E3E5302EE36F7EB"
+      },
+      "REPORTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReportsTable282F228301302D83"
+      },
+      "SUBMISSION_KEYS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefSubmissionKeysTableCC47043D0003A214"
+      },
+      "DETECTION_RESULTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefDetectionResultsTable26068E2FC2AA6B46"
+      },
+      "DETECTION_RATE_LIMITS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefDetectionRateLimitsTable65644F68F22F8378"
+      },
+      "PHOTO_BUCKET": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefPhotoBucket465738B3809BC70E"
+      },
+      "EVENT_BUS_NAME": {
+       "Ref": "EventBus7B8748AA"
+      },
+      "ACCOUNTS_FUNCTION_NAME": {
+       "Ref": "AccountsFunctionB26F8F43"
+      },
+      "SETTINGS_FUNCTION_NAME": {
+       "Ref": "SettingsFunction4D2BAE83"
+      },
+      "DUPLICATE_DETECTION_FUNCTION_NAME": {
+       "Ref": "DuplicateDetectionFunction520BBAB2"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ReportingLogs95680F59"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "ReportingFunctionServiceRoleB3C74C24",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 9
+   },
+   "DependsOn": [
+    "ReportingFunctionServiceRoleDefaultPolicy5B1316C5",
+    "ReportingFunctionServiceRoleB3C74C24"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReportingFunction/Resource",
+    "aws:asset:path": "asset.5ae6065becac23632937079eee61029b4b0b70c2e22f84782383e6215f3459d1",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ReviewLogsC0678AFF": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReviewLogs/Resource"
+   }
+  },
+  "ReviewFunctionServiceRole80E98389": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReviewFunction/ServiceRole/Resource"
+   }
+  },
+  "ReviewFunctionServiceRoleDefaultPolicyF367A1B2": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReviewDecisionsTableEAD6AFFAArnC3F4253A"
+       }
+      },
+      {
+       "Action": "events:PutEvents",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "EventBus7B8748AA",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ReviewFunctionServiceRoleDefaultPolicyF367A1B2",
+    "Roles": [
+     {
+      "Ref": "ReviewFunctionServiceRole80E98389"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReviewFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ReviewFunction06C00703": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "1b0e94494ab5acf552093c7de79af5506209f82212b2d5842a3297c19f38ba15.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "REVIEW_DECISIONS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReviewDecisionsTableEAD6AFFA7481ECC6"
+      },
+      "EVENT_BUS_NAME": {
+       "Ref": "EventBus7B8748AA"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ReviewLogsC0678AFF"
+     }
+    },
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "ReviewFunctionServiceRole80E98389",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 8
+   },
+   "DependsOn": [
+    "ReviewFunctionServiceRoleDefaultPolicyF367A1B2",
+    "ReviewFunctionServiceRole80E98389"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReviewFunction/Resource",
+    "aws:asset:path": "asset.1b0e94494ab5acf552093c7de79af5506209f82212b2d5842a3297c19f38ba15",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CatalogLogs28DC102B": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogLogs/Resource"
+   }
+  },
+  "CatalogFunctionServiceRoleAFF180B8": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogFunction/ServiceRole/Resource"
+   }
+  },
+  "CatalogFunctionServiceRoleDefaultPolicy36005DCA": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportListItemsTable16E0D7C4Arn18416293"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportListItemsTable16E0D7C4Arn18416293"
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CatalogFunctionServiceRoleDefaultPolicy36005DCA",
+    "Roles": [
+     {
+      "Ref": "CatalogFunctionServiceRoleAFF180B8"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CatalogFunctionCE342920": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "584520405baa591a18460c757775eccb192f291d09326b2f5a99b2781b475fef.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "REPORT_LIST_ITEMS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReportListItemsTable16E0D7C40B38D99A"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CatalogLogs28DC102B"
+     }
+    },
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "CatalogFunctionServiceRoleAFF180B8",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 8
+   },
+   "DependsOn": [
+    "CatalogFunctionServiceRoleDefaultPolicy36005DCA",
+    "CatalogFunctionServiceRoleAFF180B8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogFunction/Resource",
+    "aws:asset:path": "asset.584520405baa591a18460c757775eccb192f291d09326b2f5a99b2781b475fef",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ReviewOnSavedLogsB7E01B4D": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReviewOnSavedLogs/Resource"
+   }
+  },
+  "ReviewOnSavedFunctionServiceRole22CDC205": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReviewOnSavedFunction/ServiceRole/Resource"
+   }
+  },
+  "ReviewOnSavedFunctionServiceRoleDefaultPolicyF1F0CFE5": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttProcessedEventsTableDB56AE4AArn27732F2B"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReviewDecisionsTableEAD6AFFAArnC3F4253A"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ReviewOnSavedFunctionServiceRoleDefaultPolicyF1F0CFE5",
+    "Roles": [
+     {
+      "Ref": "ReviewOnSavedFunctionServiceRole22CDC205"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReviewOnSavedFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ReviewOnSavedFunctionC2E01E04": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "cca610fb6e2cc36eb2720214913eac2f637b1a1c3889b9caaeedf5e0ea5609ca.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "REVIEW_DECISIONS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReviewDecisionsTableEAD6AFFA7481ECC6"
+      },
+      "PROCESSED_EVENTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefProcessedEventsTableDB56AE4A18A34B39"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "ReviewOnSavedLogsB7E01B4D"
+     }
+    },
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "ReviewOnSavedFunctionServiceRole22CDC205",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "ReviewOnSavedFunctionServiceRoleDefaultPolicyF1F0CFE5",
+    "ReviewOnSavedFunctionServiceRole22CDC205"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReviewOnSavedFunction/Resource",
+    "aws:asset:path": "asset.cca610fb6e2cc36eb2720214913eac2f637b1a1c3889b9caaeedf5e0ea5609ca",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CatalogOnSavedLogs3A2E0BF7": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogOnSavedLogs/Resource"
+   }
+  },
+  "CatalogOnSavedFunctionServiceRole38E8B9E2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogOnSavedFunction/ServiceRole/Resource"
+   }
+  },
+  "CatalogOnSavedFunctionServiceRoleDefaultPolicy2D702178": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttProcessedEventsTableDB56AE4AArn27732F2B"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportListItemsTable16E0D7C4Arn18416293"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportListItemsTable16E0D7C4Arn18416293"
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CatalogOnSavedFunctionServiceRoleDefaultPolicy2D702178",
+    "Roles": [
+     {
+      "Ref": "CatalogOnSavedFunctionServiceRole38E8B9E2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogOnSavedFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CatalogOnSavedFunction88F08BA9": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "ba1ee82a474816b6d6ab8554912ff38dcbc83ce3de1881b92bad546fd49bec6e.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "REPORT_LIST_ITEMS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReportListItemsTable16E0D7C40B38D99A"
+      },
+      "PROCESSED_EVENTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefProcessedEventsTableDB56AE4A18A34B39"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CatalogOnSavedLogs3A2E0BF7"
+     }
+    },
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "CatalogOnSavedFunctionServiceRole38E8B9E2",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "CatalogOnSavedFunctionServiceRoleDefaultPolicy2D702178",
+    "CatalogOnSavedFunctionServiceRole38E8B9E2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogOnSavedFunction/Resource",
+    "aws:asset:path": "asset.ba1ee82a474816b6d6ab8554912ff38dcbc83ce3de1881b92bad546fd49bec6e",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CatalogOnStatusLogs6280C272": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogOnStatusLogs/Resource"
+   }
+  },
+  "CatalogOnStatusFunctionServiceRole0CDF3229": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogOnStatusFunction/ServiceRole/Resource"
+   }
+  },
+  "CatalogOnStatusFunctionServiceRoleDefaultPolicyF940701A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttProcessedEventsTableDB56AE4AArn27732F2B"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportListItemsTable16E0D7C4Arn18416293"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportListItemsTable16E0D7C4Arn18416293"
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CatalogOnStatusFunctionServiceRoleDefaultPolicyF940701A",
+    "Roles": [
+     {
+      "Ref": "CatalogOnStatusFunctionServiceRole0CDF3229"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogOnStatusFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CatalogOnStatusFunctionCE45DF90": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "c266f629608bd00a6da47873340ffa7d30cab0ed799d450be2f280a9f3ae2c35.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "REPORT_LIST_ITEMS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReportListItemsTable16E0D7C40B38D99A"
+      },
+      "PROCESSED_EVENTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefProcessedEventsTableDB56AE4A18A34B39"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "CatalogOnStatusLogs6280C272"
+     }
+    },
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "CatalogOnStatusFunctionServiceRole0CDF3229",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "CatalogOnStatusFunctionServiceRoleDefaultPolicyF940701A",
+    "CatalogOnStatusFunctionServiceRole0CDF3229"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CatalogOnStatusFunction/Resource",
+    "aws:asset:path": "asset.c266f629608bd00a6da47873340ffa7d30cab0ed799d450be2f280a9f3ae2c35",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "DuplicateDetectionOnSavedLogsEAF62746": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionOnSavedLogs/Resource"
+   }
+  },
+  "DuplicateDetectionOnSavedFunctionServiceRoleA7B592B4": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionOnSavedFunction/ServiceRole/Resource"
+   }
+  },
+  "DuplicateDetectionOnSavedFunctionServiceRoleDefaultPolicyED146A3C": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttDuplicateSuspicionsTableF37D5CE5Arn123AB351"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttProcessedEventsTableDB56AE4AArn27732F2B"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportFootprintsTable150A9BCCArn03F5A7F6"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttDuplicateSuspicionsTableF37D5CE5Arn123AB351"
+           },
+           "/index/*"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportFootprintsTable150A9BCCArn03F5A7F6"
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "events:PutEvents",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "EventBus7B8748AA",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SettingsFunction4D2BAE83",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SettingsFunction4D2BAE83",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "DuplicateDetectionOnSavedFunctionServiceRoleDefaultPolicyED146A3C",
+    "Roles": [
+     {
+      "Ref": "DuplicateDetectionOnSavedFunctionServiceRoleA7B592B4"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionOnSavedFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "DuplicateDetectionOnSavedFunctionFDB23DF1": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "b2dbd412978d76bc7ed10a768f997cff86cef92bf37c605298a38bbfad8fe69d.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "REPORT_FOOTPRINTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReportFootprintsTable150A9BCC5918F695"
+      },
+      "DUPLICATE_SUSPICIONS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefDuplicateSuspicionsTableF37D5CE5C4855FCD"
+      },
+      "PROCESSED_EVENTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefProcessedEventsTableDB56AE4A18A34B39"
+      },
+      "EVENT_BUS_NAME": {
+       "Ref": "EventBus7B8748AA"
+      },
+      "SETTINGS_FUNCTION_NAME": {
+       "Ref": "SettingsFunction4D2BAE83"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "DuplicateDetectionOnSavedLogsEAF62746"
+     }
+    },
+    "MemorySize": 256,
+    "Role": {
+     "Fn::GetAtt": [
+      "DuplicateDetectionOnSavedFunctionServiceRoleA7B592B4",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "DuplicateDetectionOnSavedFunctionServiceRoleDefaultPolicyED146A3C",
+    "DuplicateDetectionOnSavedFunctionServiceRoleA7B592B4"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionOnSavedFunction/Resource",
+    "aws:asset:path": "asset.b2dbd412978d76bc7ed10a768f997cff86cef92bf37c605298a38bbfad8fe69d",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "DuplicateDetectionOnStatusLogs684A0E07": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionOnStatusLogs/Resource"
+   }
+  },
+  "DuplicateDetectionOnStatusFunctionServiceRoleDD1CE5DD": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-iam-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionOnStatusFunction/ServiceRole/Resource"
+   }
+  },
+  "DuplicateDetectionOnStatusFunctionServiceRoleDefaultPolicy9FD0A1C8": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttProcessedEventsTableDB56AE4AArn27732F2B"
+        },
+        {
+         "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportFootprintsTable150A9BCCArn03F5A7F6"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputFnGetAttReportFootprintsTable150A9BCCArn03F5A7F6"
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "DuplicateDetectionOnStatusFunctionServiceRoleDefaultPolicy9FD0A1C8",
+    "Roles": [
+     {
+      "Ref": "DuplicateDetectionOnStatusFunctionServiceRoleDD1CE5DD"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionOnStatusFunction/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "DuplicateDetectionOnStatusFunction151CAE0A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Architectures": [
+     "arm64"
+    ],
+    "Code": {
+     "S3Bucket": "cdk-mnote-assets-611913894230-ap-northeast-1",
+     "S3Key": "24e3461e54822f5640e3d64ef7c8e015a39c6be0cb7caf8b6ef6d1c17f4cc6d0.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "REPORT_FOOTPRINTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefReportFootprintsTable150A9BCC5918F695"
+      },
+      "PROCESSED_EVENTS_TABLE": {
+       "Fn::ImportValue": "MonsterNote-Data-dev:ExportsOutputRefProcessedEventsTableDB56AE4A18A34B39"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "LoggingConfig": {
+     "LogGroup": {
+      "Ref": "DuplicateDetectionOnStatusLogs684A0E07"
+     }
+    },
+    "MemorySize": 128,
+    "Role": {
+     "Fn::GetAtt": [
+      "DuplicateDetectionOnStatusFunctionServiceRoleDD1CE5DD",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-lambda-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "DuplicateDetectionOnStatusFunctionServiceRoleDefaultPolicy9FD0A1C8",
+    "DuplicateDetectionOnStatusFunctionServiceRoleDD1CE5DD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DuplicateDetectionOnStatusFunction/Resource",
+    "aws:asset:path": "asset.24e3461e54822f5640e3d64ef7c8e015a39c6be0cb7caf8b6ef6d1c17f4cc6d0",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ReportSavedRule291FE088": {
+   "Type": "AWS::Events::Rule",
+   "Properties": {
+    "EventBusName": {
+     "Ref": "EventBus7B8748AA"
+    },
+    "EventPattern": {
+     "source": [
+      "monsternote.reporting"
+     ],
+     "detail-type": [
+      "report.saved"
+     ]
+    },
+    "State": "ENABLED",
+    "Targets": [
+     {
+      "Arn": {
+       "Fn::GetAtt": [
+        "ReviewOnSavedFunctionC2E01E04",
+        "Arn"
+       ]
+      },
+      "Id": "Target0"
+     },
+     {
+      "Arn": {
+       "Fn::GetAtt": [
+        "CatalogOnSavedFunction88F08BA9",
+        "Arn"
+       ]
+      },
+      "Id": "Target1"
+     },
+     {
+      "Arn": {
+       "Fn::GetAtt": [
+        "DuplicateDetectionOnSavedFunctionFDB23DF1",
+        "Arn"
+       ]
+      },
+      "Id": "Target2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReportSavedRule/Resource"
+   }
+  },
+  "ReportSavedRuleAllowEventRuleMonsterNoteApidevReviewOnSavedFunction045693280EDB8E26": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ReviewOnSavedFunctionC2E01E04",
+      "Arn"
+     ]
+    },
+    "Principal": "events.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "ReportSavedRule291FE088",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReportSavedRule/AllowEventRuleMonsterNoteApidevReviewOnSavedFunction04569328"
+   }
+  },
+  "ReportSavedRuleAllowEventRuleMonsterNoteApidevCatalogOnSavedFunctionD2B3E162C31C23D9": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CatalogOnSavedFunction88F08BA9",
+      "Arn"
+     ]
+    },
+    "Principal": "events.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "ReportSavedRule291FE088",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReportSavedRule/AllowEventRuleMonsterNoteApidevCatalogOnSavedFunctionD2B3E162"
+   }
+  },
+  "ReportSavedRuleAllowEventRuleMonsterNoteApidevDuplicateDetectionOnSavedFunctionF493B167663FB24E": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "DuplicateDetectionOnSavedFunctionFDB23DF1",
+      "Arn"
+     ]
+    },
+    "Principal": "events.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "ReportSavedRule291FE088",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ReportSavedRule/AllowEventRuleMonsterNoteApidevDuplicateDetectionOnSavedFunctionF493B167"
+   }
+  },
+  "StatusChangedRule9BF4CA34": {
+   "Type": "AWS::Events::Rule",
+   "Properties": {
+    "EventBusName": {
+     "Ref": "EventBus7B8748AA"
+    },
+    "EventPattern": {
+     "source": [
+      "monsternote.review"
+     ],
+     "detail-type": [
+      "review.status-changed"
+     ]
+    },
+    "State": "ENABLED",
+    "Targets": [
+     {
+      "Arn": {
+       "Fn::GetAtt": [
+        "CatalogOnStatusFunctionCE45DF90",
+        "Arn"
+       ]
+      },
+      "Id": "Target0"
+     },
+     {
+      "Arn": {
+       "Fn::GetAtt": [
+        "DuplicateDetectionOnStatusFunction151CAE0A",
+        "Arn"
+       ]
+      },
+      "Id": "Target1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/StatusChangedRule/Resource"
+   }
+  },
+  "StatusChangedRuleAllowEventRuleMonsterNoteApidevCatalogOnStatusFunction1D7F1FB9A7B546E8": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CatalogOnStatusFunctionCE45DF90",
+      "Arn"
+     ]
+    },
+    "Principal": "events.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "StatusChangedRule9BF4CA34",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/StatusChangedRule/AllowEventRuleMonsterNoteApidevCatalogOnStatusFunction1D7F1FB9"
+   }
+  },
+  "StatusChangedRuleAllowEventRuleMonsterNoteApidevDuplicateDetectionOnStatusFunctionC0911C3548D16121": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "DuplicateDetectionOnStatusFunction151CAE0A",
+      "Arn"
+     ]
+    },
+    "Principal": "events.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "StatusChangedRule9BF4CA34",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/StatusChangedRule/AllowEventRuleMonsterNoteApidevDuplicateDetectionOnStatusFunctionC0911C35"
+   }
+  },
+  "HttpApiF5A9A8A7": {
+   "Type": "AWS::ApiGatewayV2::Api",
+   "Properties": {
+    "CorsConfiguration": {
+     "AllowHeaders": [
+      "authorization",
+      "content-type"
+     ],
+     "AllowMethods": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+     ],
+     "AllowOrigins": [
+      {
+       "Fn::Join": [
+        "",
+        [
+         "https://",
+         {
+          "Fn::ImportValue": "MonsterNote-Web-dev:ExportsOutputFnGetAttHunterDistribution0EBA4241DomainName9B8D59E0"
+         }
+        ]
+       ]
+      },
+      {
+       "Fn::Join": [
+        "",
+        [
+         "https://",
+         {
+          "Fn::ImportValue": "MonsterNote-Web-dev:ExportsOutputFnGetAttRequesterDistribution3B65DF3BDomainName623A4AC9"
+         }
+        ]
+       ]
+      }
+     ],
+     "ExposeHeaders": [
+      "x-request-id"
+     ],
+     "MaxAge": 3600
+    },
+    "Name": "monsternote-dev",
+    "ProtocolType": "HTTP",
+    "Tags": {
+     "Name": "masahiro-apigateway-monsternote",
+     "Project": "monsternote"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/Resource"
+   }
+  },
+  "HttpApiPOSTv1sessionPOSTvsession49C90162": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "AccountsFunctionB26F8F43",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--session/POSTvsession/Resource"
+   }
+  },
+  "HttpApiPOSTv1sessionPOSTvsessionPermission5319DE88": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "AccountsFunctionB26F8F43",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/session"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--session/POSTvsession-Permission"
+   }
+  },
+  "HttpApiPOSTv1session8B770310": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "POST /v1/session",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiPOSTv1sessionPOSTvsession49C90162"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--session/Resource"
+   }
+  },
+  "HttpApiPOSTv1sessionrefreshPOSTvsessionrefresh30CA3705": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "AccountsFunctionB26F8F43",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--session--refresh/POSTvsessionrefresh/Resource"
+   }
+  },
+  "HttpApiPOSTv1sessionrefreshPOSTvsessionrefreshPermissionFD4856B2": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "AccountsFunctionB26F8F43",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/session/refresh"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--session--refresh/POSTvsessionrefresh-Permission"
+   }
+  },
+  "HttpApiPOSTv1sessionrefresh1EB4FFA8": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "NONE",
+    "RouteKey": "POST /v1/session/refresh",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiPOSTv1sessionrefreshPOSTvsessionrefresh30CA3705"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--session--refresh/Resource"
+   }
+  },
+  "HttpApiDELETEv1sessionDELETEvsession12454A01": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "AccountsFunctionB26F8F43",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/DELETE--v1--session/DELETEvsession/Resource"
+   }
+  },
+  "HttpApiDELETEv1sessionDELETEvsessionPermission1D2035F0": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "AccountsFunctionB26F8F43",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/session"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/DELETE--v1--session/DELETEvsession-Permission"
+   }
+  },
+  "HttpApiDELETEv1session8078DCD4": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "DELETE /v1/session",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiDELETEv1sessionDELETEvsession12454A01"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/DELETE--v1--session/Resource"
+   }
+  },
+  "HttpApiCognitoAuthorizer935FA0F6": {
+   "Type": "AWS::ApiGatewayV2::Authorizer",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizerType": "JWT",
+    "IdentitySource": [
+     "$request.header.Authorization"
+    ],
+    "JwtConfiguration": {
+     "Audience": [
+      {
+       "Fn::ImportValue": "MonsterNote-Auth-dev:ExportsOutputRefUserPoolWebClient4C9370B02E2C9FF9"
+      }
+     ],
+     "Issuer": {
+      "Fn::Join": [
+       "",
+       [
+        "https://cognito-idp.ap-northeast-1.amazonaws.com/",
+        {
+         "Fn::ImportValue": "MonsterNote-Auth-dev:ExportsOutputRefUserPool6BA7E5F296FD7236"
+        }
+       ]
+      ]
+     }
+    },
+    "Name": "CognitoAuthorizer"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/CognitoAuthorizer/Resource"
+   }
+  },
+  "HttpApiPOSTv1photosPOSTvphotosB08DC557": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--photos/POSTvphotos/Resource"
+   }
+  },
+  "HttpApiPOSTv1photosPOSTvphotosPermissionB8934F31": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/photos"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--photos/POSTvphotos-Permission"
+   }
+  },
+  "HttpApiPOSTv1photosA15D5ED6": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "POST /v1/photos",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiPOSTv1photosPOSTvphotosB08DC557"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--photos/Resource"
+   }
+  },
+  "HttpApiPOSTv1photosphotoIdcompletePOSTvphotosphotoIdcomplete452459C2": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--photos--{photoId}--complete/POSTvphotosphotoIdcomplete/Resource"
+   }
+  },
+  "HttpApiPOSTv1photosphotoIdcompletePOSTvphotosphotoIdcompletePermission5A5B1759": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/photos/{photoId}/complete"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--photos--{photoId}--complete/POSTvphotosphotoIdcomplete-Permission"
+   }
+  },
+  "HttpApiPOSTv1photosphotoIdcompleteFC5173D6": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "POST /v1/photos/{photoId}/complete",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiPOSTv1photosphotoIdcompletePOSTvphotosphotoIdcomplete452459C2"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--photos--{photoId}--complete/Resource"
+   }
+  },
+  "HttpApiPOSTv1reportsPOSTvreportsA6A288D7": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--reports/POSTvreports/Resource"
+   }
+  },
+  "HttpApiPOSTv1reportsPOSTvreportsPermissionEDCA3E2E": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/reports"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--reports/POSTvreports-Permission"
+   }
+  },
+  "HttpApiPOSTv1reports97DF0430": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "POST /v1/reports",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiPOSTv1reportsPOSTvreportsA6A288D7"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/POST--v1--reports/Resource"
+   }
+  },
+  "HttpApiGETv1reportsreportIdGETvreportsreportId7461A24F": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--reports--{reportId}/GETvreportsreportId/Resource"
+   }
+  },
+  "HttpApiGETv1reportsreportIdGETvreportsreportIdPermissionB905A47B": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/reports/{reportId}"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--reports--{reportId}/GETvreportsreportId-Permission"
+   }
+  },
+  "HttpApiGETv1reportsreportId2F5BCD87": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "GET /v1/reports/{reportId}",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiGETv1reportsreportIdGETvreportsreportId7461A24F"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--reports--{reportId}/Resource"
+   }
+  },
+  "HttpApiGETv1reviewsreportIdGETvreviewsreportIdC0995555": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ReviewFunction06C00703",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--reviews--{reportId}/GETvreviewsreportId/Resource"
+   }
+  },
+  "HttpApiGETv1reviewsreportIdGETvreviewsreportIdPermission68FC575E": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ReviewFunction06C00703",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/reviews/{reportId}"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--reviews--{reportId}/GETvreviewsreportId-Permission"
+   }
+  },
+  "HttpApiGETv1reviewsreportId02BB9873": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "GET /v1/reviews/{reportId}",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiGETv1reviewsreportIdGETvreviewsreportIdC0995555"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--reviews--{reportId}/Resource"
+   }
+  },
+  "HttpApiPUTv1reviewsreportIddecisionPUTvreviewsreportIddecision951B9501": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ReviewFunction06C00703",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/PUT--v1--reviews--{reportId}--decision/PUTvreviewsreportIddecision/Resource"
+   }
+  },
+  "HttpApiPUTv1reviewsreportIddecisionPUTvreviewsreportIddecisionPermission26704388": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ReviewFunction06C00703",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/reviews/{reportId}/decision"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/PUT--v1--reviews--{reportId}--decision/PUTvreviewsreportIddecision-Permission"
+   }
+  },
+  "HttpApiPUTv1reviewsreportIddecision7FD4A812": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "PUT /v1/reviews/{reportId}/decision",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiPUTv1reviewsreportIddecisionPUTvreviewsreportIddecision951B9501"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/PUT--v1--reviews--{reportId}--decision/Resource"
+   }
+  },
+  "HttpApiGETv1catalogreportsGETvcatalogreports9FFBE8EE": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CatalogFunctionCE342920",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--catalog--reports/GETvcatalogreports/Resource"
+   }
+  },
+  "HttpApiGETv1catalogreportsGETvcatalogreportsPermissionEE9FC73B": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CatalogFunctionCE342920",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/catalog/reports"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--catalog--reports/GETvcatalogreports-Permission"
+   }
+  },
+  "HttpApiGETv1catalogreportsBB0B62CA": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "GET /v1/catalog/reports",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiGETv1catalogreportsGETvcatalogreports9FFBE8EE"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--catalog--reports/Resource"
+   }
+  },
+  "HttpApiGETv1catalogmyreportsGETvcatalogmyreportsA4907D2E": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "CatalogFunctionCE342920",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--catalog--my-reports/GETvcatalogmyreports/Resource"
+   }
+  },
+  "HttpApiGETv1catalogmyreportsGETvcatalogmyreportsPermission0B727751": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "CatalogFunctionCE342920",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/catalog/my-reports"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--catalog--my-reports/GETvcatalogmyreports-Permission"
+   }
+  },
+  "HttpApiGETv1catalogmyreportsE7A1039F": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "GET /v1/catalog/my-reports",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiGETv1catalogmyreportsGETvcatalogmyreportsA4907D2E"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--catalog--my-reports/Resource"
+   }
+  },
+  "HttpApiGETv1reportsettingsGETvreportsettings041A70B6": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--report-settings/GETvreportsettings/Resource"
+   }
+  },
+  "HttpApiGETv1reportsettingsGETvreportsettingsPermissionE00BC90B": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ReportingFunction0442C421",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/report-settings"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--report-settings/GETvreportsettings-Permission"
+   }
+  },
+  "HttpApiGETv1reportsettings7F78E865": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "GET /v1/report-settings",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiGETv1reportsettingsGETvreportsettings041A70B6"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--report-settings/Resource"
+   }
+  },
+  "HttpApiGETv1duplicatesreportIdGETvduplicatesreportId3F861775": {
+   "Type": "AWS::ApiGatewayV2::Integration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "IntegrationType": "AWS_PROXY",
+    "IntegrationUri": {
+     "Fn::GetAtt": [
+      "DuplicateDetectionFunction520BBAB2",
+      "Arn"
+     ]
+    },
+    "PayloadFormatVersion": "2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--duplicates--{reportId}/GETvduplicatesreportId/Resource"
+   }
+  },
+  "HttpApiGETv1duplicatesreportIdGETvduplicatesreportIdPermission0001FF92": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "DuplicateDetectionFunction520BBAB2",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:ap-northeast-1:611913894230:",
+       {
+        "Ref": "HttpApiF5A9A8A7"
+       },
+       "/*/*/v1/duplicates/{reportId}"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--duplicates--{reportId}/GETvduplicatesreportId-Permission"
+   }
+  },
+  "HttpApiGETv1duplicatesreportId844B6E32": {
+   "Type": "AWS::ApiGatewayV2::Route",
+   "Properties": {
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AuthorizationType": "JWT",
+    "AuthorizerId": {
+     "Ref": "HttpApiCognitoAuthorizer935FA0F6"
+    },
+    "RouteKey": "GET /v1/duplicates/{reportId}",
+    "Target": {
+     "Fn::Join": [
+      "",
+      [
+       "integrations/",
+       {
+        "Ref": "HttpApiGETv1duplicatesreportIdGETvduplicatesreportId3F861775"
+       }
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/HttpApi/GET--v1--duplicates--{reportId}/Resource"
+   }
+  },
+  "DefaultStageEE28A986": {
+   "Type": "AWS::ApiGatewayV2::Stage",
+   "Properties": {
+    "AccessLogSettings": {
+     "DestinationArn": {
+      "Fn::GetAtt": [
+       "ApiAccessLogsE9DF007D",
+       "Arn"
+      ]
+     },
+     "Format": "{\"requestId\":\"$context.requestId\",\"routeKey\":\"$context.routeKey\",\"status\":\"$context.status\",\"latency\":\"$context.responseLatency\",\"integrationError\":\"$context.integrationErrorMessage\"}"
+    },
+    "ApiId": {
+     "Ref": "HttpApiF5A9A8A7"
+    },
+    "AutoDeploy": true,
+    "DefaultRouteSettings": {
+     "ThrottlingBurstLimit": 20,
+     "ThrottlingRateLimit": 10
+    },
+    "StageName": "$default",
+    "Tags": {
+     "Name": "masahiro-apigateway-monsternote",
+     "Project": "monsternote"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/DefaultStage/Resource"
+   }
+  },
+  "ApiAccessLogsE9DF007D": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "RetentionInDays": 14,
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-logs-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/ApiAccessLogs/Resource"
+   }
+  },
+  "AlarmTopicD01E77F9": {
+   "Type": "AWS::SNS::Topic",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "masahiro-sns-monsternote"
+     },
+     {
+      "Key": "Project",
+      "Value": "monsternote"
+     }
+    ],
+    "TopicName": "masahiro-sns-monsternote-alarm"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/AlarmTopic/Resource"
+   }
+  },
+  "Api5xxAlarm31F257DC": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmActions": [
+     {
+      "Ref": "AlarmTopicD01E77F9"
+     }
+    ],
+    "AlarmDescription": "API の 5xx の割合が 5 分間で 5% を超えた（呼び出し 5 回以上のとき）",
+    "AlarmName": "masahiro-cloudwatch-monsternote-api-5xx",
+    "ComparisonOperator": "GreaterThanThreshold",
+    "EvaluationPeriods": 1,
+    "Metrics": [
+     {
+      "Expression": "IF(cnt >= 5, e5xx / cnt * 100, 0)",
+      "Id": "expr_1",
+      "ReturnData": true
+     },
+     {
+      "Id": "e5xx",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "ApiId",
+          "Value": {
+           "Ref": "HttpApiF5A9A8A7"
+          }
+         }
+        ],
+        "MetricName": "5xx",
+        "Namespace": "AWS/ApiGateway"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "cnt",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "ApiId",
+          "Value": {
+           "Ref": "HttpApiF5A9A8A7"
+          }
+         }
+        ],
+        "MetricName": "Count",
+        "Namespace": "AWS/ApiGateway"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     }
+    ],
+    "Threshold": 5,
+    "TreatMissingData": "notBreaching"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/Api5xxAlarm/Resource"
+   }
+  },
+  "LambdaErrorsAlarm8ED74A7D": {
+   "Type": "AWS::CloudWatch::Alarm",
+   "Properties": {
+    "AlarmActions": [
+     {
+      "Ref": "AlarmTopicD01E77F9"
+     }
+    ],
+    "AlarmDescription": "5 分間で全関数のエラーの合計が 3 回以上",
+    "AlarmName": "masahiro-cloudwatch-monsternote-lambda-errors",
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "EvaluationPeriods": 1,
+    "Metrics": [
+     {
+      "Expression": "m11+m12",
+      "Id": "expr_1",
+      "ReturnData": true
+     },
+     {
+      "Expression": "m0+m1+m2+m3+m4+m5+m6+m7+m8",
+      "Id": "m11",
+      "ReturnData": false
+     },
+     {
+      "Id": "m0",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "AccountsFunctionB26F8F43"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "m1",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "ReportingFunction0442C421"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "m2",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "ReviewFunction06C00703"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "m3",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "CatalogFunctionCE342920"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "m4",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "SettingsFunction4D2BAE83"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "m5",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "DuplicateDetectionFunction520BBAB2"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "m6",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "ReviewOnSavedFunctionC2E01E04"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "m7",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "CatalogOnSavedFunction88F08BA9"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "m8",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "CatalogOnStatusFunctionCE45DF90"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Expression": "m9+m10",
+      "Id": "m12",
+      "ReturnData": false
+     },
+     {
+      "Id": "m9",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "DuplicateDetectionOnSavedFunctionFDB23DF1"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     },
+     {
+      "Id": "m10",
+      "MetricStat": {
+       "Metric": {
+        "Dimensions": [
+         {
+          "Name": "FunctionName",
+          "Value": {
+           "Ref": "DuplicateDetectionOnStatusFunction151CAE0A"
+          }
+         }
+        ],
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda"
+       },
+       "Period": 300,
+       "Stat": "Sum"
+      },
+      "ReturnData": false
+     }
+    ],
+    "Threshold": 3,
+    "TreatMissingData": "notBreaching"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/LambdaErrorsAlarm/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/12QS0/DMBCEf0vv7lJSBFzTipeEALXcq8VxU7eJHWXXjYrl/47WfUmcvpnx7kjrAoqHR5iMcKCxrnbjxv5AXDLqncKBVtHsjWOC+CScBVLztbvoRWiMBMKkGl8TxHdfv/Q+dJKfdVINtj8VrpyvzJbgI+M5OM3WO2Wxhbjwpy7hl2+sPog9qqRoukIiwwSlQNEUZkHvDM+QzKke4nztLq2ybPrWElnvksLO1shmwMO+gPjK3JWdlSGB2IUPbLJ6c2zqHs8t/+x1rgy88b39NX3uuTp5XDLW+aAskiJHEL99Z7WEWSSlGx+qAVlvIJYN9m0uEpGSyofKtnW15J+Bu8BJySfClm72xR3c3sNktCVrx31wbFsDiyP/AEhBc/DYAQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MonsterNote-Api-dev/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "ApiUrl": {
+   "Value": {
+    "Fn::GetAtt": [
+     "HttpApiF5A9A8A7",
+     "ApiEndpoint"
+    ]
+   }
+  },
+  "ExportsOutputFnGetAttHttpApiF5A9A8A7ApiEndpoint082134F8": {
+   "Value": {
+    "Fn::GetAtt": [
+     "HttpApiF5A9A8A7",
+     "ApiEndpoint"
+    ]
+   },
+   "Export": {
+    "Name": "MonsterNote-Api-dev:ExportsOutputFnGetAttHttpApiF5A9A8A7ApiEndpoint082134F8"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/mnote/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
