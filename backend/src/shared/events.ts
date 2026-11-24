@@ -37,11 +37,13 @@ export interface ReportSavedData {
   bodyPhotoId: string;
 }
 
-/** review.status-changed の中身（C13） */
+/** review.status-changed の中身（C13）。reason・undone は U3 で使う（却下の理由・取り消し） */
 export interface ReviewStatusChangedData {
   reportId: string;
   status: 'checking' | 'approved' | 'rejected';
   previousStatus: 'none' | 'checking' | 'approved' | 'rejected';
+  reason?: 'duplicate' | 'insufficient-photo' | 'out-of-scope' | 'other';
+  undone?: boolean;
   changedAt: string;
 }
 

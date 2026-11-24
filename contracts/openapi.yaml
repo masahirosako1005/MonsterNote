@@ -9,6 +9,11 @@
 #     422 の理由に「写真の期限切れ」（D-5）を、409 に DUPLICATE_SUSPECTED（BR7.1）を足した
 #   - GET /v1/report-settings（新規。ADR-010）・GET /v1/duplicates/{reportId}（新規。C5・BR8.9）を足した
 #   - GET /v1/reports/{reportId} の応答に重複の疑いの印は持たせない（D-7。疑いは C5 で、一覧の印は C14 で届く）
+# U3 での変更（D-1〜D-6。functional-spec.md §7）: 却下（decision=rejected・reason・reasonText）と
+# POST /v1/reviews/{reportId}/decision/undo を足した。Review に reason・reasonText・undoUntil、ListPage の
+# 行に location（D-2）・daysSinceSubmitted・waitingOverSevenDays（BR4.9）を足した。GET /v1/catalog/reports に
+# status・flag の絞り込みと、全件数の totalCountHasMore（D-1）を足した。decidedByName は利用者の ID の形を
+# 「依頼元の担当者」に置き換えて返す（D-4）。
 openapi: 3.0.3
 info:
   title: MonsterNote API
@@ -270,12 +275,12 @@ paths:
   /v1/reviews/{reportId}:
     get:
       tags: [Review]
-      summary: 報告の状態と確認した人。ハンターは自分の報告だけ（BR3.5）
+      summary: 報告の状態と確認した人。ハンターは自分の報告だけ（BR3.5）。D-4・D-5（U3）
       parameters:
         - { name: reportId, in: path, required: true, schema: { type: string } }
       responses:
         '200':
-          description: 状態
+          description: 状態（undoUntil は本人かつ期限内のときだけ。D-5）
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Review' }
@@ -284,7 +289,7 @@ paths:
   /v1/reviews/{reportId}/decision:
     put:
       tags: [Review]
-      summary: 承認（依頼元。確認中のときだけ。U1 は approved だけ。BR3.2〜BR3.7）
+      summary: 承認・却下（依頼元。確認中のときだけ。U3 で却下（rejected）を追加。BR3.2〜BR3.9）
       parameters:
         - { name: reportId, in: path, required: true, schema: { type: string } }
       requestBody:
@@ -295,10 +300,19 @@ paths:
               type: object
               required: [decision]
               properties:
-                decision: { type: string, enum: [approved] }
+                decision: { type: string, enum: [approved, rejected] }
+                reason:
+                  type: string
+                  enum: [duplicate, insufficient-photo, out-of-scope, other]
+                  description: decision=rejected のとき必須（BR3.8）
+                reasonText:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: reason=other のとき必須。1〜200 文字（D-3）
       responses:
         '200':
-          description: 承認した（同じ依頼元の送り直しも 200）
+          description: 承認・却下した（同じ依頼元の送り直しも 200。undoUntil を含む）
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Review' }
@@ -306,12 +320,42 @@ paths:
         '403': { $ref: '#/components/responses/Error' }
         '404': { $ref: '#/components/responses/Error' }
         '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
+  /v1/reviews/{reportId}/decision/undo:
+    post:
+      tags: [Review]
+      summary: 取り消し（依頼元。確定から 10 秒以内・本人だけ。U3・BR3.9〜BR3.11）
+      parameters:
+        - { name: reportId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: 確認中に戻した
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Review' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409':
+          description: ALREADY_UNDONE（すでに確認中に戻っている。D-6）または UNDO_EXPIRED（期限切れ）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
   /v1/catalog/reports:
     get:
       tags: [ReportCatalog]
-      summary: すべての報告の一覧（依頼元。新しい順・50 件。BR4.2・BR4.4）
+      summary: すべての報告の一覧（依頼元。新しい順・50 件。絞り込み可。BR4.2・BR4.4・BR4.5）
       parameters:
         - { name: cursor, in: query, required: false, schema: { type: string } }
+        - name: status
+          in: query
+          required: false
+          description: カンマ区切りで複数指定可（いずれか）。U3・BR4.5
+          schema: { type: string, example: 'checking,approved' }
+        - name: flag
+          in: query
+          required: false
+          description: カンマ区切りで複数指定可（いずれか）。duplicate・manual。U3・BR4.5
+          schema: { type: string, example: duplicate }
       responses:
         '200':
           description: 行と次のページの位置と全件数
@@ -323,7 +367,7 @@ paths:
   /v1/catalog/my-reports:
     get:
       tags: [ReportCatalog]
-      summary: 自分の報告の一覧（ハンター。新しい順・50 件。BR4.3・BR4.4）
+      summary: 自分の報告の一覧（ハンター。新しい順・50 件。絞り込みは持たない。BR4.3・BR4.4）
       parameters:
         - { name: cursor, in: query, required: false, schema: { type: string } }
       responses:
@@ -483,8 +527,21 @@ components:
       properties:
         reportId: { type: string }
         status: { type: string, enum: [checking, approved, rejected] }
-        decidedByName: { type: string }
+        decidedByName:
+          type: string
+          description: 利用者の ID の形に見えるときは「依頼元の担当者」に置き換えて返す（D-4）
         decidedAt: { type: string, format: date-time }
+        reason:
+          type: string
+          enum: [duplicate, insufficient-photo, out-of-scope, other]
+          description: status=rejected のときだけ（BR3.14。U3）
+        reasonText:
+          type: string
+          description: reason=other のときだけ（U3）
+        undoUntil:
+          type: string
+          format: date-time
+          description: 本人が読んだとき、かつ今の時刻以前のときだけ返す（BR3.15。D-5。U3）
     ListPage:
       type: object
       required: [items, nextCursor, totalCount]
@@ -500,12 +557,26 @@ components:
               species: { $ref: '#/components/schemas/Species' }
               capturedAt: { type: string, format: date-time }
               placeName: { type: string, nullable: true }
+              location:
+                description: placeName が空のときだけ返す（D-2）
+                allOf: [{ $ref: '#/components/schemas/GeoPoint' }]
               status: { type: string, enum: [checking, approved, rejected] }
               duplicateSuspected: { type: boolean }
               manualEntry: { type: boolean }
               submittedAt: { type: string, format: date-time }
+              daysSinceSubmitted:
+                type: integer
+                description: status=checking の行だけ。24 時間を 1 日として切り捨て（BR4.9。U3）
+              waitingOverSevenDays:
+                type: boolean
+                description: status=checking かつ経過が 7 日を超えたときだけ true（BR4.9。U3）
         nextCursor:
           type: string
           nullable: true
           description: 前のページの最後の行を表す、画面が中身を読まない文字列。最後のページは null（BR4.4）
         totalCount: { type: integer }
+        totalCountHasMore:
+          type: boolean
+          description: >-
+            絞り込みの読む上限（2,000 件）に達した、または読み出し中の一時的な失敗で打ち切ったときだけ true
+            （totalCount はそこまでの件数。画面は「2,000 件以上」と表示する。D-1・BR4.8）

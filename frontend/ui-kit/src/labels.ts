@@ -26,6 +26,30 @@ export const STATUS_LABELS: Record<ReportStatus, string> = {
   rejected: '却下',
 };
 
+// U3: 却下の理由（BR3.8）
+export type RejectReason = 'duplicate' | 'insufficient-photo' | 'out-of-scope' | 'other';
+export const REJECT_REASON_OPTIONS: ChoiceOption<RejectReason>[] = [
+  { value: 'duplicate', label: '重複の疑い' },
+  { value: 'insufficient-photo', label: '写真が不十分' },
+  { value: 'out-of-scope', label: '対象の地域・種類ではない' },
+  { value: 'other', label: 'その他' },
+];
+export function rejectReasonLabel(value: string | undefined): string {
+  return REJECT_REASON_OPTIONS.find((o) => o.value === value)?.label ?? '—';
+}
+
+// U3: 一覧の絞り込み（BR4.5）
+export const FILTER_STATUS_OPTIONS: ChoiceOption<ReportStatus>[] = [
+  { value: 'checking', label: '確認中' },
+  { value: 'approved', label: '承認' },
+  { value: 'rejected', label: '却下' },
+];
+export type FilterFlag = 'duplicate' | 'manual';
+export const FILTER_FLAG_OPTIONS: ChoiceOption<FilterFlag>[] = [
+  { value: 'duplicate', label: '重複の疑い' },
+  { value: 'manual', label: '手入力' },
+];
+
 export function speciesLabel(value: string | undefined): string {
   return SPECIES_OPTIONS.find((o) => o.value === value)?.label ?? '—';
 }

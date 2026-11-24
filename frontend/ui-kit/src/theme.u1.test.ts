@@ -4,6 +4,8 @@ import { hunterTheme, staffTheme } from './theme';
 
 const buttonRoot = (theme: typeof hunterTheme) =>
   theme.components?.MuiButton?.styleOverrides?.root as Record<string, unknown>;
+const toggleButtonRoot = (theme: typeof hunterTheme) =>
+  theme.components?.MuiToggleButton?.styleOverrides?.root as Record<string, unknown>;
 
 describe('テーマ', () => {
   it('ハンター用は文字 20px・ボタンの高さ 64px', () => {
@@ -15,6 +17,11 @@ describe('テーマ', () => {
   it('職員用は文字 16px・ボタンの高さ 48px', () => {
     expect(staffTheme.typography.body1.fontSize).toBe('16px');
     expect(buttonRoot(staffTheme).minHeight).toBe(48);
+  });
+
+  it('U3: トグルボタン（絞り込み）も Button と同じ高さ（NFR7.6）', () => {
+    expect(toggleButtonRoot(hunterTheme).minHeight).toBe(64);
+    expect(toggleButtonRoot(staffTheme).minHeight).toBe(48);
   });
 
   it('どちらも主な色は森の緑、エラーは赤', () => {

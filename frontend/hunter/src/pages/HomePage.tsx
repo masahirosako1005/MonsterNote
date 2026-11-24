@@ -80,6 +80,8 @@ export function HomePage() {
             emptyText="まだ報告はありません。上の『報告する』から始めます"
             hasNext={Boolean(page?.nextCursor)}
             onNext={() => setCursor(page?.nextCursor ?? undefined)}
+            // U3・AC5.3.2: ハンターの一覧は日数を文章で知らせる（依頼元の一覧は印だけ）
+            waitingDaysVariant="message"
           />
         )}
       </Stack>

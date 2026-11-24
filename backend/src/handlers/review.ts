@@ -5,6 +5,7 @@ import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { createReviewRepository } from '../review/repository';
 import { createDecisionRoutes } from '../review/decision';
 import { createGetReviewRoutes } from '../review/get-review';
+import { createUndoRoutes } from '../review/undo';
 import { requireEnv } from '../shared/env';
 import { createHttpHandler } from '../shared/http';
 import { createLogger } from '../shared/logger';
@@ -14,16 +15,14 @@ const repo = createReviewRepository(
   DynamoDBDocumentClient.from(new DynamoDBClient({})),
   requireEnv('REVIEW_DECISIONS_TABLE'),
 );
+const eventBridge = new EventBridgeClient({});
+const busName = requireEnv('EVENT_BUS_NAME');
 
 export const handler = createHttpHandler(
   {
-    ...createDecisionRoutes({
-      repo,
-      eventBridge: new EventBridgeClient({}),
-      busName: requireEnv('EVENT_BUS_NAME'),
-      logger,
-    }),
+    ...createDecisionRoutes({ repo, eventBridge, busName, logger }),
     ...createGetReviewRoutes({ repo }),
+    ...createUndoRoutes({ repo, eventBridge, busName, logger }),
   },
   logger,
 );

@@ -18,6 +18,8 @@ export interface ReportListItemRecord {
   species?: 'bear' | 'boar' | 'deer';
   capturedAt?: string;
   placeName?: string;
+  /** placeName が空のあいだ、一覧に場所を示すため（U3 で追加。D-2） */
+  location?: { lat: number; lng: number };
   status: ListStatus;
   duplicateSuspected: boolean;
   manualEntry: boolean;
@@ -25,6 +27,8 @@ export interface ReportListItemRecord {
   savedReceived: boolean;
   lastSavedEventAt?: string;
   lastStatusEventAt?: string;
+  /** duplicate.suspected の知らせの時刻（U3 で追加。BR4.6） */
+  lastDuplicateEventAt?: string;
   listPartition?: string;
   sortKey?: string;
 }
@@ -58,6 +62,7 @@ export function createCatalogRepository(ddb: DynamoDBDocumentClient, tableName: 
             UpdateExpression:
               'SET hunterAccountId = :hunterAccountId, hunterName = :hunterName, species = :species, ' +
               'capturedAt = :capturedAt, submittedAt = :submittedAt, manualEntry = :manualEntry, ' +
+              '#location = :location, ' +
               'savedReceived = :savedReceived, lastSavedEventAt = :occurredAt, ' +
               'listPartition = :listPartition, sortKey = :sortKey, ' +
               '#status = if_not_exists(#status, :checking), ' +
@@ -65,7 +70,8 @@ export function createCatalogRepository(ddb: DynamoDBDocumentClient, tableName: 
               placeName,
             ConditionExpression:
               'attribute_not_exists(lastSavedEventAt) OR lastSavedEventAt < :occurredAt',
-            ExpressionAttributeNames: { '#status': 'status' },
+            // location は DynamoDB の予約語のため #location を使う
+            ExpressionAttributeNames: { '#status': 'status', '#location': 'location' },
             ExpressionAttributeValues: {
               ':hunterAccountId': data.hunterAccountId,
               ':hunterName': data.hunterName,
@@ -73,6 +79,7 @@ export function createCatalogRepository(ddb: DynamoDBDocumentClient, tableName: 
               ':capturedAt': data.capturedAt,
               ':submittedAt': data.submittedAt,
               ':manualEntry': data.manualEntry,
+              ':location': data.location,
               ':savedReceived': true,
               ':occurredAt': occurredAt,
               ':listPartition': ALL_PARTITION,
@@ -117,6 +124,31 @@ export function createCatalogRepository(ddb: DynamoDBDocumentClient, tableName: 
         if (isConditionFailure(err)) return false;
         throw err;
       }
+    },
+
+    /**
+     * 重複の疑いの印を立てる（BR4.6）。一度立てたら戻さないため条件は要らない（常に true にするだけ）。
+     * 行がまだなければ先に作る（savedReceived=false のまま。report.saved が届いたら一覧に出る）
+     */
+    async applyDuplicate(reportId: string, occurredAt: string): Promise<void> {
+      await ddb.send(
+        new UpdateCommand({
+          TableName: tableName,
+          Key: { reportId },
+          UpdateExpression:
+            'SET duplicateSuspected = :true, lastDuplicateEventAt = :occurredAt, ' +
+            '#status = if_not_exists(#status, :checking), ' +
+            'savedReceived = if_not_exists(savedReceived, :false), ' +
+            'manualEntry = if_not_exists(manualEntry, :false)',
+          ExpressionAttributeNames: { '#status': 'status' },
+          ExpressionAttributeValues: {
+            ':true': true,
+            ':occurredAt': occurredAt,
+            ':checking': 'checking',
+            ':false': false,
+          },
+        }),
+      );
     },
 
     /** 索引の 1 回のクエリで、送信の新しい順に limit + 1 件まで読む（次のページがあるかを知るため） */

@@ -1,12 +1,14 @@
-// R3 報告の詳細と承認（UC3 の 3、UC4。BR2.8・BR3.3・BR3.6・BR3.7・BR6.1）。
+// R3 報告の詳細と承認・却下（UC3 の 3、UC4、UC15・UC16。BR2.8・BR3.3・BR3.6・BR3.7・BR3.8・BR3.9・BR6.1）
 // U2: 重複の疑いの相手の一覧も読んで見せる（C5。BR8.8・BR8.9・Q7。却下された相手の状態もあわせて出す）
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Alert, Button, Stack, Typography } from '@mui/material';
 import { ApiError } from '@ui-kit/api/client';
 import { DecisionBar } from '@ui-kit/components/DecisionBar';
+import { RejectReasonForm } from '@ui-kit/components/RejectReasonForm';
 import { ReportDetail, type ReportDetailData } from '@ui-kit/components/ReportDetail';
 import { STATUS_LABELS } from '@ui-kit/labels';
+import { UndoButton } from '@ui-kit/components/UndoButton';
 import { useSession } from '@ui-kit/session/SessionContext';
 import { Loading } from '@ui-kit/AppFrame';
 import {
@@ -14,6 +16,8 @@ import {
   getReport,
   getReview,
   listDuplicates,
+  reject,
+  undoDecision,
   type DuplicateMatchView,
   type ReviewView,
 } from '../api';
@@ -27,6 +31,7 @@ export function DetailPage() {
   const [review, setReview] = useState<ReviewView>();
   const [duplicates, setDuplicates] = useState<DuplicateMatchView[]>();
   const [error, setError] = useState<string>();
+  const [rejecting, setRejecting] = useState(false);
 
   const loadReview = useCallback(async () => {
     setReview(await getReview(store.api, reportId));
@@ -60,6 +65,16 @@ export function DetailPage() {
     };
   }, [store, reportId]);
 
+  const handleUndo = async () => {
+    // D-6・NFR7.7: ALREADY_UNDONE・UNDO_EXPIRED は undoDecision が吸収し、ここには届かない。
+    // それ以外の失敗は UndoButton 側で表示する。成功・吸収のどちらでも、応答を受けて状態を出し直す。
+    try {
+      await undoDecision(store.api, reportId);
+    } finally {
+      await loadReview();
+    }
+  };
+
   return (
     <RequesterShell>
       <Stack spacing={2}>
@@ -81,6 +96,8 @@ export function DetailPage() {
               status={review.status}
               decidedByName={review.decidedByName}
               decidedAt={review.decidedAt}
+              reason={review.reason}
+              reasonText={review.reasonText}
             />
             {duplicates && duplicates.length > 0 && (
               <Stack spacing={1} data-testid="duplicate-list">
@@ -96,7 +113,21 @@ export function DetailPage() {
             <DecisionBar
               status={review.status}
               onApprove={() => approve(store.api, reportId)}
+              onReject={() => setRejecting(true)}
               onDecided={() => void loadReview()}
+            />
+            {review.undoUntil && (
+              // key: undoUntil が変わったら（取り消し後にもう一度確認したときなど）作り直す
+              <UndoButton key={review.undoUntil} undoUntil={review.undoUntil} onUndo={handleUndo} />
+            )}
+            <RejectReasonForm
+              open={rejecting}
+              onCancel={() => setRejecting(false)}
+              onConfirm={async (input) => {
+                await reject(store.api, reportId, input);
+                setRejecting(false);
+                await loadReview();
+              }}
             />
           </>
         )}

@@ -265,7 +265,8 @@ describe('Api（HTTP API・関数・知らせ・監視）', () => {
     expect(open.sort()).toEqual(['POST /v1/session', 'POST /v1/session/refresh']);
     const keys = routes.map((r) => String(r.Properties.RouteKey));
     // U1 の 11 個 + U2 の 2 個（GET /v1/report-settings・GET /v1/duplicates/{reportId}）
-    expect(keys).toHaveLength(13);
+    // + U3 の 1 個（POST /v1/reviews/{reportId}/decision/undo）
+    expect(keys).toHaveLength(14);
     expect(keys).toEqual(
       expect.arrayContaining([
         'DELETE /v1/session',
@@ -375,11 +376,13 @@ describe('Api（HTTP API・関数・知らせ・監視）', () => {
       // U1 の CatalogOnStatus + U2 の DuplicateDetectionOnStatus
       Targets: Match.arrayEquals([Match.anyValue(), Match.anyValue()]),
     });
-    // 受け手の関数は EventBridge からの呼び出しだけを許す（U1 の 3 + U2 の 2）
+    // 受け手の関数は EventBridge からの呼び出しだけを許す
+    // U1 の 3 + U2 の 2（DuplicateDetectionOnSaved・DuplicateDetectionOnStatus）
+    // + U3 の 1（DuplicateSuspectedRule→catalogOnStatus。stacks.u3.test.ts で詳しく確認する）
     const perms = resourcesOf(t.api!, 'AWS::Lambda::Permission').filter(
       (p) => p.Properties.Principal === 'events.amazonaws.com',
     );
-    expect(perms).toHaveLength(5);
+    expect(perms).toHaveLength(6);
   });
 
   it('アラームは 2 つ: 5xx の割合（計算式・データがなければ正常）と関数のエラー。宛先は SNS', () => {

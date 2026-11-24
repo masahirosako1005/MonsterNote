@@ -1,7 +1,14 @@
-// 報告の詳細（R3。BR2.8・BR6.1: 写真は期限付きの URL）。受け取った値は文字として表示する（NFR5.6）。
-import { Box, Stack, Typography } from '@mui/material';
+// 報告の詳細（R3・H9。BR2.8・BR6.1: 写真は期限付きの URL、BR3.14: 却下の理由）。
+// 受け取った値は文字として表示する（NFR5.6）。
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { StatusChip } from './StatusChip';
-import { formatDateTime, sexLabel, speciesLabel, type ReportStatus } from '../labels';
+import {
+  formatDateTime,
+  rejectReasonLabel,
+  sexLabel,
+  speciesLabel,
+  type ReportStatus,
+} from '../labels';
 
 const AGE_CLASS_LABELS: Record<string, string> = { adult: '成獣', juvenile: '幼獣' };
 const CAPTURE_METHOD_LABELS: Record<string, string> = { trap: 'わな', gun: '銃', other: 'その他' };
@@ -26,6 +33,11 @@ export interface ReportDetailProps {
   status: ReportStatus;
   decidedByName?: string;
   decidedAt?: string;
+  /** BR3.14: 却下の理由（ハンターにも見せる） */
+  reason?: string;
+  reasonText?: string;
+  /** ハンターの詳細（H9）だけで渡す。却下のときに「撮り直して新しく報告する」を出す（AC5.2.2） */
+  onRetry?: () => void;
 }
 
 function Field({ label, value, testId }: { label: string; value: string; testId: string }) {
@@ -45,7 +57,15 @@ const PHOTO_LABELS: Record<string, string> = {
   chest: '胸の写真',
 };
 
-export function ReportDetail({ report, status, decidedByName, decidedAt }: ReportDetailProps) {
+export function ReportDetail({
+  report,
+  status,
+  decidedByName,
+  decidedAt,
+  reason,
+  reasonText,
+  onRetry,
+}: ReportDetailProps) {
   return (
     <Stack spacing={2}>
       <Stack direction="row" spacing={1} sx={{ overflowX: 'auto' }} data-testid="report-photos">
@@ -104,6 +124,18 @@ export function ReportDetail({ report, status, decidedByName, decidedAt }: Repor
           value={`${decidedByName}（${formatDateTime(decidedAt)}）`}
           testId="detail-decided-by"
         />
+      )}
+      {status === 'rejected' && reason && (
+        <Field
+          label="却下の理由"
+          value={reason === 'other' && reasonText ? reasonText : rejectReasonLabel(reason)}
+          testId="detail-reject-reason"
+        />
+      )}
+      {status === 'rejected' && onRetry && (
+        <Button variant="contained" onClick={onRetry} data-testid="retry-report">
+          撮り直して新しく報告する
+        </Button>
       )}
     </Stack>
   );

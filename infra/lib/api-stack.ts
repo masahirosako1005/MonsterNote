@@ -265,6 +265,17 @@ export class ApiStack extends Stack {
         new LambdaFunction(duplicateDetectionOnStatus),
       ],
     });
+    // U3 BR4.6・UC19: 重複の疑いの印（送り手は U2 の DuplicateDetection。C14）。
+    // 新しい関数は作らない（infrastructure-specification.md）。既存の catalogOnStatus が受け、
+    // 関数の中で envelope.type を見て振り分ける（handlers/consumers.ts）
+    new Rule(this, 'DuplicateSuspectedRule', {
+      eventBus: bus,
+      eventPattern: {
+        source: ['monsternote.duplicatedetection'],
+        detailType: ['duplicate.suspected'],
+      },
+      targets: [new LambdaFunction(catalogOnStatus)],
+    });
 
     // HTTP API
     this.httpApi = new HttpApi(this, 'HttpApi', {
@@ -328,6 +339,7 @@ export class ApiStack extends Stack {
     route(HttpMethod.GET, '/v1/reports/{reportId}', reporting);
     route(HttpMethod.GET, '/v1/reviews/{reportId}', review);
     route(HttpMethod.PUT, '/v1/reviews/{reportId}/decision', review);
+    route(HttpMethod.POST, '/v1/reviews/{reportId}/decision/undo', review);
     route(HttpMethod.GET, '/v1/catalog/reports', catalog);
     route(HttpMethod.GET, '/v1/catalog/my-reports', catalog);
     // U2: 対象地域の読み出し（ADR-010。担当は Reporting が内部で Settings を呼ぶ）
