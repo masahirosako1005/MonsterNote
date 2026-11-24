@@ -1,0 +1,28 @@
+{
+  "stage": "nfr-requirements",
+  "unit": "u4-accounts-admin",
+  "upstream_ids": [
+    "NFR1", "NFR2", "NFR3", "NFR4", "NFR5", "NFR6", "NFR7",
+    "NFR8", "NFR9", "NFR10", "NFR11", "NFR12", "NFR13", "NFR14"
+  ],
+  "coverage": [
+    { "id": "NFR1", "status": "OK", "target": "NFR1.7（U1〜U3 の分を引き継ぐ）" },
+    { "id": "NFR2", "status": "OK", "target": "NFR2.15, NFR2.16, NFR2.17, NFR2.18" },
+    { "id": "NFR3", "status": "OK", "target": "NFR3.8, NFR3.9, NFR3.10" },
+    { "id": "NFR4", "status": "OK", "target": "NFR4.13, NFR4.14, NFR4.15, NFR4.16, NFR4.17" },
+    { "id": "NFR5", "status": "OK", "target": "NFR5.15, NFR5.16, NFR5.17" },
+    { "id": "NFR6", "status": "N/A", "target": "秘密情報の扱いは U1 の NFR6.3 のままで、U4 で変える点がない（レビュー R-02）" },
+    { "id": "NFR7", "status": "OK", "target": "NFR7.8, NFR7.9, NFR7.10" },
+    { "id": "NFR8", "status": "N/A", "target": "デザインは U1 の NFR8.1 で決めており、U4 で変える点がない" },
+    { "id": "NFR9", "status": "OK", "target": "NFR9.5（管理者の画面〈AdminApp〉の対応機器を新しく定めた。レビュー R-01）" },
+    { "id": "NFR10", "status": "OK", "target": "NFR10.26, NFR10.27, NFR10.28, NFR10.29, NFR10.30, NFR10.31, NFR10.32" },
+    { "id": "NFR11", "status": "OK", "target": "NFR11.19, NFR11.20, NFR11.21, NFR11.22, NFR11.23, NFR11.24" },
+    { "id": "NFR12", "status": "OK", "target": "NFR12.10, NFR12.11" },
+    { "id": "NFR13", "status": "OK", "target": "NFR13.11, NFR13.12, NFR13.13" },
+    { "id": "NFR14", "status": "OK", "target": "NFR14.5, NFR14.6, NFR14.7" }
+  ],
+  "reverse": [
+    { "id": "NFR10.31", "status": "N/A", "target": "アラームを U4 で増やさないという決め（Q5）。上流の NFR10 は目標値を述べており、アラームの数は述べていない" },
+    { "id": "NFR10.32", "status": "N/A", "target": "ログから数える値の一覧（Q5）。常時の集計を作らないための取り決めで、上流に対応する ID がない" }
+  ]
+}

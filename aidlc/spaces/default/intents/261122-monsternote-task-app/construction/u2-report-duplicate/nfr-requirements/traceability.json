@@ -1,0 +1,29 @@
+{
+  "stage": "nfr-requirements",
+  "unit": "u2-report-duplicate",
+  "upstream_ids": [
+    "NFR1", "NFR2", "NFR3", "NFR4", "NFR5", "NFR6", "NFR7",
+    "NFR8", "NFR9", "NFR10", "NFR11", "NFR12", "NFR13", "NFR14"
+  ],
+  "coverage": [
+    { "id": "NFR1", "status": "OK", "target": "NFR1.4, NFR1.5（U1 の NFR1.1〜NFR1.3 を引き継ぐ）" },
+    { "id": "NFR2", "status": "OK", "target": "NFR2.6, NFR2.7, NFR2.8, NFR2.9, NFR2.10, NFR2.11" },
+    { "id": "NFR3", "status": "OK", "target": "NFR3.3, NFR3.4, NFR3.5" },
+    { "id": "NFR4", "status": "OK", "target": "NFR4.6, NFR4.7, NFR4.8, NFR4.9" },
+    { "id": "NFR5", "status": "OK", "target": "NFR5.7, NFR5.8, NFR5.9, NFR5.10, NFR5.11, NFR5.12" },
+    { "id": "NFR6", "status": "OK", "target": "NFR6.4（U1 の NFR6.1〜NFR6.3 を引き継ぐ）" },
+    { "id": "NFR7", "status": "OK", "target": "NFR7.2, NFR7.3, NFR7.4" },
+    { "id": "NFR8", "status": "N/A", "target": "デザイン（MUI・マテリアルデザイン・日本語）は U1 の NFR8.1 で決めており、U2 で変える点がない" },
+    { "id": "NFR9", "status": "OK", "target": "NFR9.3, NFR9.4" },
+    { "id": "NFR10", "status": "OK", "target": "NFR10.9, NFR10.10, NFR10.11, NFR10.12, NFR10.13, NFR10.14, NFR10.15, NFR10.16, NFR10.17" },
+    { "id": "NFR11", "status": "OK", "target": "NFR11.7, NFR11.8, NFR11.9, NFR11.10, NFR11.11, NFR11.12, NFR11.13" },
+    { "id": "NFR12", "status": "OK", "target": "NFR12.5, NFR12.6, NFR12.7, NFR12.8" },
+    { "id": "NFR13", "status": "OK", "target": "NFR13.5, NFR13.6, NFR13.7, NFR13.8" },
+    { "id": "NFR14", "status": "OK", "target": "NFR14.1, NFR14.2（受け手の AuditLog は u4-accounts-admin で作る）" }
+  ],
+  "reverse": [
+    { "id": "NFR10.18", "status": "N/A", "target": "アラームを U2 で増やさないという決め（Q5）。上流の NFR10 は目標値を述べており、アラームの数は述べていない" },
+    { "id": "NFR10.19", "status": "N/A", "target": "ログから数える値の一覧（Q5）。常時の集計を作らないための取り決めで、上流に対応する ID がない" },
+    { "id": "NFR10.20", "status": "N/A", "target": "U1 のアラームが U2 の関数も拾うことの確認（設定を足さなくてよいという記録）" }
+  ]
+}

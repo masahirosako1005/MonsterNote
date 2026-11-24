@@ -1,0 +1,196 @@
+{
+  "stage": "functional-design",
+  "unit": "u3-review-list",
+  "upstream_ids": [
+    "AC4.1.1",
+    "AC4.1.2",
+    "AC4.1.3",
+    "AC4.1.4",
+    "AC4.4.1",
+    "AC4.4.2",
+    "AC4.4.3",
+    "AC4.5.1",
+    "AC4.5.2",
+    "AC4.5.3",
+    "AC4.6.1",
+    "AC4.6.2",
+    "AC4.6.3",
+    "AC4.7.1",
+    "AC4.7.2",
+    "AC5.2.1",
+    "AC5.2.2",
+    "AC5.2.3",
+    "AC5.3.1",
+    "AC5.3.2",
+    "AC5.3.3"
+  ],
+  "coverage": [
+    {
+      "id": "AC4.1.1",
+      "status": "N/A",
+      "target": "delivered by u1-skeleton（一覧の最小形。unit-of-work-story-map は U3 の範囲を AC4.1.2 だけに限っている。レビュー R-03）"
+    },
+    {
+      "id": "AC4.1.2",
+      "status": "OK",
+      "target": "BR4.5"
+    },
+    {
+      "id": "AC4.1.3",
+      "status": "N/A",
+      "target": "delivered by u1-skeleton（50 件のページ分け。U3 は絞り込みのときの読み方だけを足す）"
+    },
+    {
+      "id": "AC4.1.4",
+      "status": "N/A",
+      "target": "delivered by u1-skeleton（報告が 0 件のときの表示）"
+    },
+    {
+      "id": "AC4.4.1",
+      "status": "OK",
+      "target": "BR3.8"
+    },
+    {
+      "id": "AC4.4.2",
+      "status": "OK",
+      "target": "BR3.8"
+    },
+    {
+      "id": "AC4.4.3",
+      "status": "OK",
+      "target": "BR3.14"
+    },
+    {
+      "id": "AC4.5.1",
+      "status": "OK",
+      "target": "BR3.9"
+    },
+    {
+      "id": "AC4.5.2",
+      "status": "OK",
+      "target": "BR3.9"
+    },
+    {
+      "id": "AC4.5.3",
+      "status": "OK",
+      "target": "BR3.9"
+    },
+    {
+      "id": "AC4.6.1",
+      "status": "OK",
+      "target": "BR3.3"
+    },
+    {
+      "id": "AC4.6.2",
+      "status": "OK",
+      "target": "BR3.11"
+    },
+    {
+      "id": "AC4.6.3",
+      "status": "OK",
+      "target": "BR3.10"
+    },
+    {
+      "id": "AC4.7.1",
+      "status": "OK",
+      "target": "BR4.9"
+    },
+    {
+      "id": "AC4.7.2",
+      "status": "OK",
+      "target": "BR4.9"
+    },
+    {
+      "id": "AC5.2.1",
+      "status": "OK",
+      "target": "BR3.14"
+    },
+    {
+      "id": "AC5.2.2",
+      "status": "OK",
+      "target": "BR3.14"
+    },
+    {
+      "id": "AC5.2.3",
+      "status": "OK",
+      "target": "BR3.14"
+    },
+    {
+      "id": "AC5.3.1",
+      "status": "OK",
+      "target": "BR4.9"
+    },
+    {
+      "id": "AC5.3.2",
+      "status": "OK",
+      "target": "BR4.9"
+    },
+    {
+      "id": "AC5.3.3",
+      "status": "OK",
+      "target": "BR4.10"
+    }
+  ],
+  "reverse": [
+    {
+      "id": "BR3.2",
+      "status": "N/A",
+      "target": "確認できるのは依頼元だけ（U1 から引き継ぐ。AC4.4.1・AC4.6.1 の前提で、権限そのものを確かめる基準はこの Unit にない）"
+    },
+    {
+      "id": "BR3.5",
+      "status": "N/A",
+      "target": "ハンターが読める状態の範囲（U1 から引き継ぐ。AC5.1.3 は u1-skeleton が確かめた）"
+    },
+    {
+      "id": "BR3.7",
+      "status": "N/A",
+      "target": "確認の記録がまだないときの扱い（U1 から引き継ぐ技術上の決まり。知らせの遅れへの備えで、受け入れ基準なし）"
+    },
+    {
+      "id": "BR3.12",
+      "status": "N/A",
+      "target": "確認した人の名前の決め方（Q5。利用者の ID を画面に出さないための決まりで、AC4.6.1 の表示の中身を支える）"
+    },
+    {
+      "id": "BR3.13",
+      "status": "N/A",
+      "target": "状態の知らせを送る時機（Q3。約束 C13 の取り決めで、受け入れ基準なし）"
+    },
+    {
+      "id": "BR4.3",
+      "status": "N/A",
+      "target": "ハンターの一覧の読める人（U1 から引き継ぐ。AC5.1.2 は u1-skeleton が確かめた）"
+    },
+    {
+      "id": "BR4.6",
+      "status": "N/A",
+      "target": "重複の疑いの印の受け取り（AC3.3.2 は u2-report-duplicate のストーリー。U3 は一覧の側で受ける）"
+    },
+    {
+      "id": "BR4.7",
+      "status": "N/A",
+      "target": "絞り込みの実現の仕方（Q1。結果は AC4.1.2 と同じで、受け入れ基準なし）"
+    },
+    {
+      "id": "BR4.8",
+      "status": "N/A",
+      "target": "絞り込みを掛けたときの全件数（Q2。読む上限の取り決めで、受け入れ基準なし）"
+    },
+    {
+      "id": "BR3.15",
+      "status": "N/A",
+      "target": "状態の読み出しで本人に取り消せる残りを返す（レビュー R-04。画面を離れて戻ったときのための決まりで、受け入れ基準なし）"
+    },
+    {
+      "id": "BR4.4",
+      "status": "N/A",
+      "target": "ページ分けの決まり（U1 から引き継ぐ。AC4.1.3 は u1-skeleton が確かめた）"
+    },
+    {
+      "id": "BR4.2",
+      "status": "N/A",
+      "target": "依頼元の一覧の読める人と並び順（U1 から引き継ぐ。AC4.1.1・AC4.1.4 は u1-skeleton が確かめた）"
+    }
+  ]
+}
