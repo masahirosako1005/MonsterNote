@@ -8,11 +8,11 @@
 
 ## 1. プロジェクト構成（既存への追加）
 
-- [ ] Step 1: 新規ファイルはなし。既存の `backend/src/review/`・`backend/src/catalog/`（U1 で作成済み）に機能を追加する
+- [x] Step 1: 新規ファイルはなし。既存の `backend/src/review/`・`backend/src/catalog/`（U1 で作成済み）に機能を追加する
 
 ## 2. テスト実行環境の確認
 
-- [ ] Step 2: 既存の `vitest.workspace.ts`・DynamoDB Local のヘルパーをそのまま使う。`ReviewDecisions`・`ReportListItems` の表の形は U1 のまま（項目を追加するだけ）であることを確認し、`npx vitest run backend/src/review` が通ることを確認する
+- [x] Step 2: 既存の `vitest.workspace.ts`・DynamoDB Local のヘルパーをそのまま使う。`ReviewDecisions`・`ReportListItems` の表の形は U1 のまま（項目を追加するだけ）であることを確認し、`npx vitest run backend/src/review` が通ることを確認する
 
 ## 3. データモデル／DB 層（Red→Green→Refactor）
 
@@ -23,48 +23,55 @@
 | `ReviewDecisions` | `reason`・`reasonText`・`undoUntil` | entities.md、BR3.8・BR3.9 |
 | `ReportListItems` | `duplicateSuspected`・`manualEntry` | entities.md、BR4.6 |
 
-- [ ] Step 3 (Red): `backend/src/review/repository.u3.test.ts`（既存ファイルに追記）に、`reason`・`reasonText`・`undoUntil` を含む読み書きの失敗するテストを書く
-- [ ] Step 4 (Green): `backend/src/review/repository.ts` を拡張する
-- [ ] Step 5 (Refactor): 項目名の定数化など、既存のコードと重複する部分を整理する
+- [x] Step 3 (Red): `backend/src/review/repository.u3.test.ts`（既存ファイルに追記）に、`reason`・`reasonText`・`undoUntil` を含む読み書きの失敗するテストを書く
+- [x] Step 4 (Green): `backend/src/review/repository.ts` を拡張する
+- [x] Step 5 (Refactor): 項目名の定数化など、既存のコードと重複する部分を整理する
 
 ## 4. リポジトリ／データアクセス層（Red→Green→Refactor）
 
-- [ ] Step 6 (Red): 承認・却下・取り消しの条件付き書き換え（reliability-design.md §1 の `ConditionExpression`）の失敗するテストを `backend/src/review/decision.u3.test.ts`（既存ファイルに追記）に書く（却下の成功・409 ALREADY_DECIDED・取り消しの成功・403・409 UNDO_EXPIRED・409 ALREADY_UNDONE の各パターン）
-- [ ] Step 7 (Green): `backend/src/review/decision.ts` を拡張し、却下（`decision=rejected`）を受け付ける。`backend/src/review/undo.ts`（新規）に取り消しのロジックを実装する（`ConditionExpression: "status <> :checking AND decidedByAccountId = :acct AND undoUntil >= :now"`）
-- [ ] Step 8 (Refactor): 却下・取り消しで共通の「条件に合わなければ記録を読み直して理由を判定する」ロジックを共有する
+- [x] Step 6 (Red): 承認・却下・取り消しの条件付き書き換え（reliability-design.md §1 の `ConditionExpression`）の失敗するテストを `backend/src/review/decision.u3.test.ts`（既存ファイルに追記）に書く（却下の成功・409 ALREADY_DECIDED・取り消しの成功・403・409 UNDO_EXPIRED・409 ALREADY_UNDONE の各パターン）
+- [x] Step 7 (Green): `backend/src/review/decision.ts` を拡張し、却下（`decision=rejected`）を受け付ける。`backend/src/review/undo.ts`（新規）に取り消しのロジックを実装する（`ConditionExpression: "status <> :checking AND decidedByAccountId = :acct AND undoUntil >= :now"`）
+- [x] Step 8 (Refactor): 却下・取り消しで共通の「条件に合わなければ記録を読み直して理由を判定する」ロジックを共有する
 
 ## 5. 業務ロジック層（Red→Green→Refactor）
 
-- [ ] Step 9 (Red): 却下の理由の確認（4つの理由、`other` のとき1〜200文字必須。BR3.8）、絞り込みの判定（status・flag の組み合わせ。BR4.5）、`undoUntil` の絞り込み（本人かつ期限内だけ返す。BR3.15・NFR4.11）、「送ってから n 日」「7日以上」の計算（BR4.9）の失敗するテストを `backend/src/review/validate-reject.u3.test.ts`・`backend/src/catalog/filter.u3.test.ts`・`backend/src/review/undo-visibility.u3.test.ts`・`backend/src/catalog/days-elapsed.u3.test.ts`（新規）に書く
-- [ ] Step 10 (Green): 対応するロジックファイルを実装する
-- [ ] Step 11 (Refactor): 日数計算（24時間を1日として切り捨て）を `backend/src/shared/` の共通関数に切り出す
+- [x] Step 9 (Red): 却下の理由の確認（4つの理由、`other` のとき1〜200文字必須。BR3.8）、絞り込みの判定（status・flag の組み合わせ。BR4.5）、`undoUntil` の絞り込み（本人かつ期限内だけ返す。BR3.15・NFR4.11）、「送ってから n 日」「7日以上」の計算（BR4.9）の失敗するテストを `backend/src/review/validate-reject.u3.test.ts`・`backend/src/catalog/filter.u3.test.ts`・`backend/src/review/undo-visibility.u3.test.ts`・`backend/src/catalog/days-elapsed.u3.test.ts`（新規）に書く
+- [x] Step 10 (Green): 対応するロジックファイルを実装する
+- [x] Step 11 (Refactor): 日数計算（24時間を1日として切り捨て）を `backend/src/shared/` の共通関数に切り出す
 
 ## 6. API／エンドポイント層（Red→Green→Refactor）
 
 対象のルート（infrastructure-specification.md §2。`review`・`catalog` の既存の2関数に分けて追加する）: `PUT /v1/reviews/{reportId}/decision`（拡張。`review`）、`POST /v1/reviews/{reportId}/decision/undo`（新規。`review`）、`GET /v1/reviews/{reportId}`（拡張。`review`）、`GET /v1/catalog/reports`（拡張。`catalog`）、`GET /v1/catalog/my-reports`（拡張。`catalog`）。
 
-- [ ] Step 12 (Red): `backend/src/handlers/review.u3.test.ts`（既存ファイルに追記）・`backend/src/handlers/catalog.u3.test.ts`（既存ファイルに追記）に、却下・取り消し・絞り込みの応答の失敗するテストを書く
-- [ ] Step 13 (Green):
+- [x] Step 12 (Red): `backend/src/handlers/review.u3.test.ts`（既存ファイルに追記）・`backend/src/handlers/catalog.u3.test.ts`（既存ファイルに追記）に、却下・取り消し・絞り込みの応答の失敗するテストを書く
+- [x] Step 13 (Green):
   - `backend/src/handlers/review.ts` を拡張し、`PUT /v1/reviews/{reportId}/decision` の `decision=rejected` 対応、`POST /v1/reviews/{reportId}/decision/undo`（新規の道）、`GET /v1/reviews/{reportId}` の `undoUntil` を条件付きで含める拡張を実装する
   - `backend/src/handlers/catalog.ts` を拡張し、`GET /v1/catalog/reports` の `status`・`flag`・`cursor` パラメータ対応、`GET /v1/catalog/my-reports` への `location`（緯度・経度）追加を実装する（D-2）
   - 取り消しの知らせ（`review.status-changed`）は、承認・却下と異なり **1 回だけ送信を試し、結果を待たず応答する**（performance-design.md・reliability-design.md §2 のとおり）
-- [ ] Step 14 (Refactor): `review`・`catalog` それぞれの IAM 境界（`review` は `ReviewDecisions` だけ、`catalog` は `ReportListItems` だけ）を壊さないよう、ハンドラの依存関係を確認する
+- [x] Step 14 (Refactor): `review`・`catalog` それぞれの IAM 境界（`review` は `ReviewDecisions` だけ、`catalog` は `ReportListItems` だけ）を壊さないよう、ハンドラの依存関係を確認する
 
 ## 7. フロントエンドの振る舞い層（Red→Green→Refactor）
 
-- [ ] Step 15 (Red): 却下の理由選択画面（4択＋その他の文字入力、1〜200文字）、取り消しボタン（10秒カウントダウン、サーバーの絶対時刻との差で計算。NFR7.5）、絞り込みの選択UI（複数選択可能なトグルボタン）、同時操作で弾かれたときの画面の出し直し（エラー表示にしない）の失敗するテストを `frontend/requester/src/pages/DetailPage.u3.test.tsx`・`frontend/ui-kit/src/components/UndoButton.u3.test.tsx`・`frontend/requester/src/pages/ListPage.u3.test.tsx`（既存ファイルに追記）に書く
-- [ ] Step 16 (Green): `frontend/requester/src/pages/DetailPage.tsx`（拡張。却下理由選択・取り消しボタン）、`frontend/ui-kit/src/components/UndoButton.tsx`（新規）、`frontend/requester/src/pages/ListPage.tsx`（拡張。絞り込みUI）を実装する
-- [ ] Step 17 (Refactor): カウントダウンの表示ロジックを U2 で作った `useTimeout`（あれば）と共通化できるか確認する
+- [x] Step 15 (Red): 却下の理由選択画面（4択＋その他の文字入力、1〜200文字）、取り消しボタン（10秒カウントダウン、サーバーの絶対時刻との差で計算。NFR7.5）、絞り込みの選択UI（複数選択可能なトグルボタン）、同時操作で弾かれたときの画面の出し直し（エラー表示にしない）の失敗するテストを `frontend/requester/src/pages/DetailPage.u3.test.tsx`・`frontend/ui-kit/src/components/UndoButton.u3.test.tsx`・`frontend/requester/src/pages/ListPage.u3.test.tsx`（既存ファイルに追記）に書く
+- [x] Step 16 (Green): `frontend/requester/src/pages/DetailPage.tsx`（拡張。却下理由選択・取り消しボタン）、`frontend/ui-kit/src/components/UndoButton.tsx`（新規）、`frontend/requester/src/pages/ListPage.tsx`（拡張。絞り込みUI）を実装する
+- [x] Step 17 (Refactor): カウントダウンの表示ロジックを U2 で作った `useTimeout`（あれば）と共通化できるか確認する
 
 ## 8. 環境・構成ファイル
 
-- [ ] Step 18: `infra/lib/api-stack.ts` に `POST /v1/reviews/{reportId}/decision/undo` の道を追加する（`review` 関数へ）。既存の `review`・`catalog` 関数のメモリ・時間切れ（128 MB・8秒）は変更しない
-- [ ] Step 19: `infra/test/stacks.u3.test.ts`（新規）で、`review`・`catalog` 関数のメモリ・時間切れが変わっていないこと、新しい道が正しい関数に紐づいていることを `aws-cdk-lib/assertions` で確認する
+- [x] Step 18: `infra/lib/api-stack.ts` に `POST /v1/reviews/{reportId}/decision/undo` の道を追加する（`review` 関数へ）。既存の `review`・`catalog` 関数のメモリ・時間切れ（128 MB・8秒）は変更しない
+- [x] Step 19: `infra/test/stacks.u3.test.ts`（新規）で、`review`・`catalog` 関数のメモリ・時間切れが変わっていないこと、新しい道が正しい関数に紐づいていることを `aws-cdk-lib/assertions` で確認する
 
 ## 9. ドキュメントとトレーサビリティ
 
-- [ ] Step 20: `contracts/openapi.yaml` を更新する（D-1〜D-6 のとおり: 全件数の「これ以上ある」の印、`location` の追加、`reasonText` の長さ制約、`decidedByName` の置き換えの明記、`undoUntil` の追加、`409 ALREADY_UNDONE` の追加）
-- [ ] Step 21: `<record>/construction/u3-review-list/code-generation/code-summary.md`・`source-manifest.json`・`traceability.json` を作成する
+- [x] Step 20: `contracts/openapi.yaml` を更新する（D-1〜D-6 のとおり: 全件数の「これ以上ある」の印、`location` の追加、`reasonText` の長さ制約、`decidedByName` の置き換えの明記、`undoUntil` の追加、`409 ALREADY_UNDONE` の追加）
+- [x] Step 21: `<record>/construction/u3-review-list/code-generation/code-summary.md`・`source-manifest.json`・`traceability.json` を作成する
+
+## Assumptions
+
+実装の途中で、承認済みの計画や設計文書が具体の手段を書き切っていなかった箇所が 2 つ見つかった。データモデルの新しい要素（entities.md にない表・項目）は追加していないが、念のためここに記録する（詳細は code-summary.md §5）。
+
+- **`duplicate.suspected`（BR4.6・UC19）の受け手の配線**: infrastructure-specification.md は「新しい Lambda 関数・新しい表・新しい外部サービスを作らない」と明記しているが、どの既存の関数がこの知らせを受けるかという具体の EventBridge のルールは、U3 にも U2 の infrastructure-specification.md にも書かれていなかった（U2 は送り手側のルールだけを足していた）。logical-components.md の構成図（「duplicate.suspected は catalog 関数が受ける」）に沿い、新しい Lambda 関数を増やさずに**既存の** `catalogOnStatus` 関数を再利用し、関数の中で `envelope.type` を見て振り分けるようにした（`backend/src/handlers/consumers.ts`）。infra には新しい EventBridge のルール（`DuplicateSuspectedRule`）を 1 つだけ足した（新しい関数・表ではない）。
+- **一覧の応答に `daysSinceSubmitted`・`waitingOverSevenDays` を足した**: entities.md は日数を「項目として持たない（読み出しのたびに計算する）」としているが、どこで計算するか（サーバーかフロントエンドか）は明記していなかった。functional-spec.md の UC18 手順 5 が `GET /v1/catalog/reports` 自身の処理として日数の計算を書いていること、および承認済み計画の Step 9〜10 が `backend/src/catalog/days-elapsed.ts`（バックエンドの業務ロジック）を名指していることから、サーバー側で計算し一覧の応答に含める実装とした。DynamoDB には保存しない（entities.md の制約どおり）。openapi.yaml にこの 2 項目を追記し、理由をコメントで残した。
 
 ## Testing Contract
 

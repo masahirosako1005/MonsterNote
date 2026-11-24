@@ -1,0 +1,67 @@
+{
+  "stage": "code-generation",
+  "unit": "u3-review-list",
+  "version": 1,
+  "writes": [
+    { "path": "contracts/openapi.yaml" },
+
+    { "path": "backend/src/shared/events.ts" },
+    { "path": "backend/src/shared/days.ts" },
+
+    { "path": "backend/src/review/repository.ts" },
+    { "path": "backend/src/review/repository.u3.test.ts" },
+    { "path": "backend/src/review/decision.ts" },
+    { "path": "backend/src/review/decision.u3.test.ts" },
+    { "path": "backend/src/review/decision.u1.test.ts" },
+    { "path": "backend/src/review/get-review.ts" },
+    { "path": "backend/src/review/undo.ts" },
+    { "path": "backend/src/review/decided-by-name.ts" },
+    { "path": "backend/src/review/validate-reject.ts" },
+    { "path": "backend/src/review/validate-reject.u3.test.ts" },
+    { "path": "backend/src/review/undo-visibility.ts" },
+    { "path": "backend/src/review/undo-visibility.u3.test.ts" },
+
+    { "path": "backend/src/catalog/repository.ts" },
+    { "path": "backend/src/catalog/list.ts" },
+    { "path": "backend/src/catalog/list.u3.test.ts" },
+    { "path": "backend/src/catalog/filter.ts" },
+    { "path": "backend/src/catalog/filter.u3.test.ts" },
+    { "path": "backend/src/catalog/days-elapsed.ts" },
+    { "path": "backend/src/catalog/days-elapsed.u3.test.ts" },
+    { "path": "backend/src/catalog/on-duplicate.ts" },
+    { "path": "backend/src/catalog/on-events.u3.test.ts" },
+
+    { "path": "backend/src/handlers/review.ts" },
+    { "path": "backend/src/handlers/review.u3.test.ts" },
+    { "path": "backend/src/handlers/catalog.u3.test.ts" },
+    { "path": "backend/src/handlers/consumers.ts" },
+
+    { "path": "backend/test/integration/u3-review-flow.u3.test.ts" },
+
+    { "path": "infra/lib/api-stack.ts" },
+    { "path": "infra/test/stacks.u1.test.ts" },
+    { "path": "infra/test/stacks.u3.test.ts" },
+
+    { "path": "frontend/ui-kit/src/labels.ts" },
+    { "path": "frontend/ui-kit/src/theme.ts" },
+    { "path": "frontend/ui-kit/src/theme.u1.test.ts" },
+    { "path": "frontend/ui-kit/src/components/DecisionBar.tsx" },
+    { "path": "frontend/ui-kit/src/components/ReportDetail.tsx" },
+    { "path": "frontend/ui-kit/src/components/ReportList.tsx" },
+    { "path": "frontend/ui-kit/src/components/UndoButton.tsx" },
+    { "path": "frontend/ui-kit/src/components/UndoButton.u3.test.tsx" },
+    { "path": "frontend/ui-kit/src/components/RejectReasonForm.tsx" },
+    { "path": "frontend/ui-kit/src/components/FilterBar.tsx" },
+    { "path": "frontend/ui-kit/src/components/ListPager.tsx" },
+    { "path": "frontend/ui-kit/src/components/WaitingDays.tsx" },
+
+    { "path": "frontend/requester/src/api.ts" },
+    { "path": "frontend/requester/src/pages/DetailPage.tsx" },
+    { "path": "frontend/requester/src/pages/DetailPage.u3.test.tsx" },
+    { "path": "frontend/requester/src/pages/ListPage.tsx" },
+    { "path": "frontend/requester/src/pages/ListPage.u3.test.tsx" },
+
+    { "path": "frontend/hunter/src/pages/HomePage.tsx" },
+    { "path": "frontend/hunter/src/pages/HomePage.u3.test.tsx" }
+  ]
+}

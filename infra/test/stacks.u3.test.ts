@@ -28,8 +28,8 @@ const resourcesOf = (template: Template, type: string) =>
   Object.values(template.findResources(type)) as { Properties: Record<string, unknown> }[];
 
 describe('U3: review・catalog 関数（既存のまま。新しい関数は作らない）', () => {
-  it('関数はいまも 7 つ（却下・取り消し・絞り込みは既存の review・catalog を拡張するだけ）', () => {
-    expect(resourcesOf(api, 'AWS::Lambda::Function')).toHaveLength(7);
+  it('関数はいまも 11 つ（U1 の 7 + U2 の 4。却下・取り消し・絞り込みは既存の review・catalog を拡張するだけ）', () => {
+    expect(resourcesOf(api, 'AWS::Lambda::Function')).toHaveLength(11);
   });
 
   it('review 関数のメモリ・時間切れは変わらない（128 MB・8 秒）', () => {
@@ -133,16 +133,16 @@ describe('U3: duplicate.suspected の知らせ（BR4.6。新しい関数は作�
       ).includes('CatalogOnStatusFunction'),
     );
     expect(targetsCatalogOnStatus).toBe(true);
-    // 関数は 7 つのまま（上の describe と合わせて二重に確かめる）
+    // 関数は 11 つのまま（U1 の 7 + U2 の 4。上の describe と合わせて二重に確かめる）
     expect(names.length).toBeGreaterThan(0);
-    expect(fns).toHaveLength(7);
+    expect(fns).toHaveLength(11);
   });
 });
 
 describe('U3: 新しい表・新しいスタックを作らない（infrastructure-specification.md Q1-A）', () => {
-  it('MonsterNote-Data-dev の表は U1 の 7 つのまま', () => {
+  it('MonsterNote-Data-dev の表は U1 の 7 + U2 の 5 のまま（U3 は増やさない）', () => {
     const data = Template.fromStack(stacks.data);
-    expect(Object.keys(data.findResources('AWS::DynamoDB::Table'))).toHaveLength(7);
+    expect(Object.keys(data.findResources('AWS::DynamoDB::Table'))).toHaveLength(12);
   });
 
   it('ReviewDecisions・ReportListItems に新しい索引は増えていない', () => {
