@@ -35532,3 +35532,16 @@
 **Details**: <project-dir>/docs/05-construction.md
 
 ---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-24T13:15:58Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: grant
+**Grant**: turn-marker
+**Actor**: main
+**Stage**: code-generation
+**Tool**: Bash
+**Details**: cd <project-dir>\ngit commit -m "$(cat <<'EOF'\ndocs: record U2/U3 code-generation results, merge fixes, and 5 learnings\n\n- Add cod
+
+---
