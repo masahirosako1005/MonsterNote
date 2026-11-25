@@ -35927,3 +35927,228 @@
 **Fork Boundary**: 1313948
 
 ---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-25T11:38:37Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: testing-posture begin
+**Details**: begin for unit:u2-report-duplicate using current content; the earlier approval is unchanged
+
+---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-25T11:38:39Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: testing-posture begin
+**Details**: begin for unit:u3-review-list using current content; the earlier approval is unchanged
+
+---
+
+## Bolt Failed
+**Timestamp**: 2026-11-25T11:38:41Z
+**Event**: BOLT_FAILED
+**Failed Bolt**: u2-report-duplicate
+**Error summary**: Interrupted swarm preparation; source and records preserved for recovery
+**Bolt slug**: u2-report-duplicate
+
+---
+
+## Bolt Started
+**Timestamp**: 2026-11-25T11:38:41Z
+**Event**: BOLT_STARTED
+**Bolt names**: u2-report-duplicate
+**Batch number**: 2
+**Walking skeleton**: false
+**Bolt slug**: u2-report-duplicate
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+
+---
+
+## State Forked
+**Timestamp**: 2026-11-25T11:38:41Z
+**Event**: STATE_FORKED
+**Bolt slug**: u2-report-duplicate
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate
+**Source state hash**: b79a08e9ec61ffec14c5118781f96ca3dfa353d7ef052bd987a0ecc1e8503c33
+**Target state hash**: b79a08e9ec61ffec14c5118781f96ca3dfa353d7ef052bd987a0ecc1e8503c33
+
+---
+
+## Audit Forked
+**Timestamp**: 2026-11-25T11:38:41Z
+**Event**: AUDIT_FORKED
+**Bolt slug**: u2-report-duplicate
+**Source Audit Hash**: 706d1fb972df5b6d9bbc1935b2bb8670366e0465c0f068021e5b042d61d1adcf
+**Fork Boundary**: 1315813
+
+---
+
+## Bolt Failed
+**Timestamp**: 2026-11-25T11:38:46Z
+**Event**: BOLT_FAILED
+**Failed Bolt**: u3-review-list
+**Error summary**: Interrupted swarm preparation; source and records preserved for recovery
+**Bolt slug**: u3-review-list
+
+---
+
+## Bolt Started
+**Timestamp**: 2026-11-25T11:38:46Z
+**Event**: BOLT_STARTED
+**Bolt names**: u3-review-list
+**Batch number**: 2
+**Walking skeleton**: false
+**Bolt slug**: u3-review-list
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+
+---
+
+## State Forked
+**Timestamp**: 2026-11-25T11:38:46Z
+**Event**: STATE_FORKED
+**Bolt slug**: u3-review-list
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u3-review-list
+**Source state hash**: 9d5427175f613bdcbf7b12e7f5512f79cd4ab79854c246f2d8367e6054f92fca
+**Target state hash**: 9d5427175f613bdcbf7b12e7f5512f79cd4ab79854c246f2d8367e6054f92fca
+
+---
+
+## Audit Forked
+**Timestamp**: 2026-11-25T11:38:46Z
+**Event**: AUDIT_FORKED
+**Bolt slug**: u3-review-list
+**Source Audit Hash**: 696fa589205e36f52a730024c6cdadc8545a07f09c598cc799b5aafbe37218a5
+**Fork Boundary**: 1316978
+
+---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-25T11:39:07Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: testing-posture begin
+**Details**: begin for unit:u2-report-duplicate using current content; the earlier approval is unchanged
+
+---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-25T11:39:09Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: testing-posture begin
+**Details**: begin for unit:u3-review-list using current content; the earlier approval is unchanged
+
+---
+
+## Bolt Failed
+**Timestamp**: 2026-11-25T11:39:11Z
+**Event**: BOLT_FAILED
+**Failed Bolt**: u2-report-duplicate
+**Error summary**: Interrupted swarm preparation; source and records preserved for recovery
+**Bolt slug**: u2-report-duplicate
+
+---
+
+## Bolt Started
+**Timestamp**: 2026-11-25T11:39:11Z
+**Event**: BOLT_STARTED
+**Bolt names**: u2-report-duplicate
+**Batch number**: 2
+**Walking skeleton**: false
+**Bolt slug**: u2-report-duplicate
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+
+---
+
+## State Forked
+**Timestamp**: 2026-11-25T11:39:11Z
+**Event**: STATE_FORKED
+**Bolt slug**: u2-report-duplicate
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate
+**Source state hash**: b79a08e9ec61ffec14c5118781f96ca3dfa353d7ef052bd987a0ecc1e8503c33
+**Target state hash**: b79a08e9ec61ffec14c5118781f96ca3dfa353d7ef052bd987a0ecc1e8503c33
+
+---
+
+## Audit Forked
+**Timestamp**: 2026-11-25T11:39:11Z
+**Event**: AUDIT_FORKED
+**Bolt slug**: u2-report-duplicate
+**Source Audit Hash**: e7b1d7109ee25ee6bb0d2e238a8b2b598e289d28f6ad73ba3e19b63e61a9ff1e
+**Fork Boundary**: 1318843
+
+---
+
+## Bolt Failed
+**Timestamp**: 2026-11-25T11:39:16Z
+**Event**: BOLT_FAILED
+**Failed Bolt**: u3-review-list
+**Error summary**: Interrupted swarm preparation; source and records preserved for recovery
+**Bolt slug**: u3-review-list
+
+---
+
+## Bolt Started
+**Timestamp**: 2026-11-25T11:39:16Z
+**Event**: BOLT_STARTED
+**Bolt names**: u3-review-list
+**Batch number**: 2
+**Walking skeleton**: false
+**Bolt slug**: u3-review-list
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+
+---
+
+## State Forked
+**Timestamp**: 2026-11-25T11:39:16Z
+**Event**: STATE_FORKED
+**Bolt slug**: u3-review-list
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u3-review-list
+**Source state hash**: 9d5427175f613bdcbf7b12e7f5512f79cd4ab79854c246f2d8367e6054f92fca
+**Target state hash**: 9d5427175f613bdcbf7b12e7f5512f79cd4ab79854c246f2d8367e6054f92fca
+
+---
+
+## Audit Forked
+**Timestamp**: 2026-11-25T11:39:17Z
+**Event**: AUDIT_FORKED
+**Bolt slug**: u3-review-list
+**Source Audit Hash**: b01578f0db4f40c0e2152d80b0f37b7c47cbd30f40811cc2c64dd7b9a1f4fa53
+**Fork Boundary**: 1320008
+
+---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-25T11:39:55Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: Bash
+**Details**: cd <project-dir>\nsed -n '5780,5835p' .claude/tools/aidlc-testing-posture.ts
+
+---
