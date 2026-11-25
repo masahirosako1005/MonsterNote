@@ -49,10 +49,19 @@ interface Report {
   submittedAt: string;
   photoId: string;
   submissionKey: string;
-  status: 'checking' | 'approved';
+  status: 'checking' | 'approved' | 'rejected';
   decidedByName?: string;
   decidedAt?: string;
+  // U3（新規）
+  reason?: string;
+  reasonText?: string;
+  undoUntil?: string;
+  duplicateSuspected?: boolean;
 }
+
+// U3（BR3.9・BR3.15）: 取り消しができる期間。本物の値（backend/src/review/decision.ts の
+// UNDO_WINDOW_MS）と同じ 10 秒に合わせる（E2E は却下の直後に取り消すだけなので余裕がある）
+const UNDO_WINDOW_MS = 10_000;
 
 let reports: Report[] = [];
 // U2: 写真ごとの kind（判別は全身の写真だけ。BR6.2）
@@ -117,7 +126,7 @@ function listItem(r: Report) {
     capturedAt: r.submittedAt,
     placeName: null,
     status: r.status,
-    duplicateSuspected: false,
+    duplicateSuspected: r.duplicateSuspected ?? false,
     manualEntry: false,
     submittedAt: r.submittedAt,
   };
@@ -241,6 +250,8 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       photoId: String((body.photos as { body?: string } | undefined)?.body),
       submissionKey,
       status: 'checking',
+      // U3（一覧の絞り込みの印。BR7.1・BR7.2）: 重複の確認を経て送ったものに印を付ける
+      duplicateSuspected: body.confirmedNotDuplicate === true,
     };
     reports.unshift(report);
     return send(res, 201, { reportId: report.reportId });
@@ -253,10 +264,23 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   }
   if (method === 'GET' && path === '/v1/catalog/reports') {
     if (me.role !== 'requester') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    // U3（BR4.5）: status・flag で絞り込む（複数はカンマ区切り）
+    const statusFilter = url.searchParams.get('status')?.split(',').filter(Boolean) ?? [];
+    const flagFilter = url.searchParams.get('flag')?.split(',').filter(Boolean) ?? [];
+    const filtered = reports.filter((r) => {
+      if (statusFilter.length > 0 && !statusFilter.includes(r.status)) return false;
+      if (flagFilter.length > 0) {
+        const hasFlag =
+          (flagFilter.includes('duplicate') && r.duplicateSuspected) ||
+          (flagFilter.includes('manual') && false);
+        if (!hasFlag) return false;
+      }
+      return true;
+    });
     return send(res, 200, {
-      items: reports.map(listItem),
+      items: filtered.map(listItem),
       nextCursor: null,
-      totalCount: reports.length,
+      totalCount: filtered.length,
     });
   }
 
@@ -298,6 +322,26 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     return send(res, 200, { reportId: duplicatesMatch[1], matches: [] });
   }
 
+  // U3（BR3.9・BR3.15）: 取り消し。decision の道より先に見る（/decision/undo が /decision にもマッチしてしまわないように）
+  const undoMatch = path.match(/^\/v1\/reviews\/([^/]+)\/decision\/undo$/);
+  if (method === 'POST' && undoMatch) {
+    if (me.role !== 'requester') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    const r = reports.find((x) => x.reportId === undoMatch[1]);
+    if (!r) return error(res, 404, 'NOT_FOUND', '報告が見つかりません');
+    if (r.status === 'checking')
+      return error(res, 409, 'ALREADY_UNDONE', 'すでに確認中に戻っています');
+    if (!r.undoUntil || new Date(r.undoUntil).getTime() < Date.now()) {
+      return error(res, 409, 'UNDO_EXPIRED', '取り消せる期限が過ぎています');
+    }
+    r.status = 'checking';
+    r.decidedByName = undefined;
+    r.decidedAt = undefined;
+    r.reason = undefined;
+    r.reasonText = undefined;
+    r.undoUntil = undefined;
+    return send(res, 204);
+  }
+
   const reviewMatch = path.match(/^\/v1\/reviews\/([^/]+)(\/decision)?$/);
   if (reviewMatch) {
     const r = reports.find((x) => x.reportId === reviewMatch[1]);
@@ -313,6 +357,10 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
       status: r.status,
       decidedByName: r.decidedByName,
       decidedAt: r.decidedAt,
+      reason: r.reason,
+      reasonText: r.reasonText,
+      // 本人かつ期限内のときだけ返る（BR3.15）
+      undoUntil: me.role === 'requester' && r.undoUntil ? r.undoUntil : undefined,
     };
     if (method === 'GET' && !reviewMatch[2]) return send(res, 200, view);
     if (method === 'PUT' && reviewMatch[2]) {
@@ -324,14 +372,24 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
           decidedAt: r.decidedAt,
         });
       }
-      r.status = 'approved';
+      const body = await readJson(req);
+      const decision = body.decision === 'rejected' ? 'rejected' : 'approved';
+      r.status = decision;
       r.decidedByName = me.displayName;
       r.decidedAt = new Date().toISOString();
+      if (decision === 'rejected') {
+        r.reason = typeof body.reason === 'string' ? body.reason : undefined;
+        r.reasonText = typeof body.reasonText === 'string' ? body.reasonText : undefined;
+        r.undoUntil = new Date(Date.now() + UNDO_WINDOW_MS).toISOString();
+      }
       return send(res, 200, {
         ...view,
         status: r.status,
         decidedByName: r.decidedByName,
         decidedAt: r.decidedAt,
+        reason: r.reason,
+        reasonText: r.reasonText,
+        undoUntil: r.undoUntil,
       });
     }
   }
