@@ -35545,3 +35545,385 @@
 **Details**: cd <project-dir>\ngit commit -m "$(cat <<'EOF'\ndocs: record U2/U3 code-generation results, merge fixes, and 5 learnings\n\n- Add cod
 
 ---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-24T13:16:32Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: Bash
+**Details**: /tmp/claude-1000/-home-masahiro-Project-Claude-20261123-AIDLC/8a4c3c66-8d6e-4f49-971e-a93ce68e32f6/scratchpad/continue2.json
+
+---
+
+## Plan Approval Blocked
+**Timestamp**: 2026-11-24T13:16:40Z
+**Event**: PLAN_APPROVAL_BLOCKED
+**Guard**: plan-approval-guard
+**Reason**: rules-arriving
+**Tool**: Bash
+**Session**: 8a4c3c66-8d6e-4f49-971e-a93ce68e32f6
+**Stage**: code-generation
+**Unit**: (missing marker)
+
+---
+
+## Plan Approval Blocked
+**Timestamp**: 2026-11-24T13:17:07Z
+**Event**: PLAN_APPROVAL_BLOCKED
+**Guard**: plan-approval-guard
+**Reason**: rules-arriving
+**Tool**: Bash
+**Session**: 8a4c3c66-8d6e-4f49-971e-a93ce68e32f6
+**Stage**: code-generation
+**Unit**: (missing marker)
+
+---
+
+## Change Accepted
+**Timestamp**: 2026-11-24T13:17:30Z
+**Event**: CHANGE_ACCEPTED
+**Stage**: code-generation
+**Unit**: u2-report-duplicate
+**Checkpoint**: swarm-batch
+**Changed**: backend/src/handlers/consumers.ts, backend/src/shared/events.ts, contracts/openapi.yaml, frontend/requester/src/api.ts, frontend/requester/src/pages/DetailPage.tsx, frontend/ui-kit/src/components/ReportDetail.tsx, infra/lib/api-stack.ts, infra/test/stacks.u1.test.ts
+**Recorded**: sha256:1b7f84ee58122a121c0b258f2214387c8f2fc65c2a9933ec52a25d96afdca7ee
+**Current**: sha256:8235de6369975620be1e69427904a4abbde1971cd4381e71b83859a146121ea5
+**Details**: Files from the report duplicate Unit changed after its batch was checked: backend/src/handlers/consumers.ts, backend/src/shared/events.ts, contracts/openapi.yaml, frontend/requester/src/api.ts, frontend/requester/src/pages/DetailPage.tsx, frontend/ui-kit/src/components/ReportDetail.tsx, infra/lib/api-stack.ts, infra/test/stacks.u1.test.ts. Kept them.
+
+---
+
+## Change Accepted
+**Timestamp**: 2026-11-24T13:17:30Z
+**Event**: CHANGE_ACCEPTED
+**Stage**: code-generation
+**Unit**: u3-review-list
+**Checkpoint**: swarm-batch
+**Changed**: backend/src/handlers/consumers.ts, backend/src/shared/events.ts, contracts/openapi.yaml, frontend/requester/src/api.ts, frontend/requester/src/pages/DetailPage.tsx, frontend/ui-kit/src/components/ReportDetail.tsx, infra/lib/api-stack.ts, infra/test/stacks.u1.test.ts, infra/test/stacks.u3.test.ts
+**Recorded**: sha256:53d3bb131bd19169ec2e53864a9f95de19d836903e68c784b5b7b4a6b4f2fa2d
+**Current**: sha256:72125d3088eac5bbd5a83cf325b0af08aad9b7d3356da62bdb9b4371086ca5a0
+**Details**: Files from the review list Unit changed after its batch was checked: backend/src/handlers/consumers.ts, backend/src/shared/events.ts, contracts/openapi.yaml, frontend/requester/src/api.ts, frontend/requester/src/pages/DetailPage.tsx, frontend/ui-kit/src/components/ReportDetail.tsx, infra/lib/api-stack.ts, infra/test/stacks.u1.test.ts, infra/test/stacks.u3.test.ts. Kept them.
+
+---
+
+## Decision Recorded
+**Timestamp**: 2026-11-24T13:17:30Z
+**Event**: DECISION_RECORDED
+**Checkpoint**: Swarm Batch Approval
+**Stage**: code-generation
+**Batch number**: 2
+**Units**: u2-report-duplicate, u3-review-list
+**Fingerprint**: sha256:f54726072120316be580088fbc2b2d36c7048c2e76865ef694a43b9e34da1702
+**Session**: 8a4c3c66-8d6e-4f49-971e-a93ce68e32f6
+**Options**: Approve,Request Changes
+**Question Id**: a4512499
+**Question Type**: swarm-batch
+**Question Chat**: 8a4c3c66-8d6e-4f49-971e-a93ce68e32f6
+**Question Shows**: sha256:5c1890de48ccfc1231c86b1a426b47a802144d915595e65c6335ac8c854160a4
+
+---
+
+## Human Turn
+**Timestamp**: 2026-11-24T18:46:41Z
+**Event**: HUMAN_TURN
+**Session**: 8a4c3c66-8d6e-4f49-971e-a93ce68e32f6
+**Origin**: person
+**Source**: typed
+**Message Id**: b2d6ae72
+**Open Questions**: 63041590, be68bb39, 49580a23, 31fe6de1, a4512499
+**Questions Digest**: {"file":"aidlc/spaces/default/intents/261122-monsternote-task-app/construction/u3-review-list/code-generation/code-generation-questions.md","entries":{"Plan Approval":"8264a121f2d56dc8"}}
+
+---
+
+## Human Turn
+**Timestamp**: 2026-11-25T11:36:33Z
+**Event**: HUMAN_TURN
+**Session**: 8a4c3c66-8d6e-4f49-971e-a93ce68e32f6
+**Origin**: person
+**Source**: typed
+**Message Id**: 3c7bf54e
+**Open Questions**: 63041590, be68bb39, 49580a23, 31fe6de1, a4512499
+**Questions Digest**: {"file":"aidlc/spaces/default/intents/261122-monsternote-task-app/construction/u3-review-list/code-generation/code-generation-questions.md","entries":{"Plan Approval":"8264a121f2d56dc8"}}
+
+---
+
+## Gate Rejected
+**Timestamp**: 2026-11-25T11:37:06Z
+**Event**: GATE_REJECTED
+**Checkpoint**: swarm-batch
+**Stage**: code-generation
+**Gate Stages**: code-generation
+**Batch number**: 2
+**Units**: u2-report-duplicate, u3-review-list
+**Fingerprint**: sha256:f54726072120316be580088fbc2b2d36c7048c2e76865ef694a43b9e34da1702
+**Intent**: 01a2058a-c2b2-7c15-b5df-628da4824aa1
+**Run floor**: STAGE_STARTED:2026-11-24T10:00:23Z#1
+**Run floors**: {"u2-report-duplicate":"STAGE_STARTED:2026-11-24T10:00:23Z#1","u3-review-list":"STAGE_STARTED:2026-11-24T10:00:23Z#1"}
+**Command SHA-256**: e492cb588e46dc938800a644e4e7f324b77393ba878ad6ef7f3ac84c640a0946
+**Unit**: u2-report-duplicate
+**Session**: 8a4c3c66-8d6e-4f49-971e-a93ce68e32f6
+**User Input**: Request Changes
+**Reason**: u3-review-list: 承認済み計画(code-generation-plan.md)は却下・取り消し・絞り込みのE2Eテスト5件を約束していたが、1件も作られていない。code-summary.mdには「計画になかった」と事実と異なる記載があった。計画通りにE2Eテストを追加してから再提出すること。
+**Feedback**: u3-review-list: 承認済み計画(code-generation-plan.md)は却下・取り消し・絞り込みのE2Eテスト5件を約束していたが、1件も作られていない。code-summary.mdには「計画になかった」と事実と異なる記載があった。計画通りにE2Eテストを追加してから再提出すること。
+**Person Reply**: このままバッチを承認せず、U3に差し戻して、計画通りのE2Eテスト（却下・取り消し・絞り込みのうち主要な5シナリオ）を追加してください
+**Message Id**: 3c7bf54e
+**Git Name**: Masahiro Sako
+
+---
+
+## Gate Rejected
+**Timestamp**: 2026-11-25T11:37:06Z
+**Event**: GATE_REJECTED
+**Checkpoint**: swarm-batch
+**Stage**: code-generation
+**Gate Stages**: code-generation
+**Batch number**: 2
+**Units**: u2-report-duplicate, u3-review-list
+**Fingerprint**: sha256:f54726072120316be580088fbc2b2d36c7048c2e76865ef694a43b9e34da1702
+**Intent**: 01a2058a-c2b2-7c15-b5df-628da4824aa1
+**Run floor**: STAGE_STARTED:2026-11-24T10:00:23Z#1
+**Run floors**: {"u2-report-duplicate":"STAGE_STARTED:2026-11-24T10:00:23Z#1","u3-review-list":"STAGE_STARTED:2026-11-24T10:00:23Z#1"}
+**Command SHA-256**: e492cb588e46dc938800a644e4e7f324b77393ba878ad6ef7f3ac84c640a0946
+**Unit**: u3-review-list
+**Session**: 8a4c3c66-8d6e-4f49-971e-a93ce68e32f6
+**User Input**: Request Changes
+**Reason**: u3-review-list: 承認済み計画(code-generation-plan.md)は却下・取り消し・絞り込みのE2Eテスト5件を約束していたが、1件も作られていない。code-summary.mdには「計画になかった」と事実と異なる記載があった。計画通りにE2Eテストを追加してから再提出すること。
+**Feedback**: u3-review-list: 承認済み計画(code-generation-plan.md)は却下・取り消し・絞り込みのE2Eテスト5件を約束していたが、1件も作られていない。code-summary.mdには「計画になかった」と事実と異なる記載があった。計画通りにE2Eテストを追加してから再提出すること。
+**Person Reply**: このままバッチを承認せず、U3に差し戻して、計画通りのE2Eテスト（却下・取り消し・絞り込みのうち主要な5シナリオ）を追加してください
+**Message Id**: 3c7bf54e
+**Git Name**: Masahiro Sako
+
+---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-25T11:37:38Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: testing-posture begin
+**Details**: begin for unit:u2-report-duplicate using current content; the earlier approval is unchanged
+
+---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-25T11:37:40Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: testing-posture begin
+**Details**: begin for unit:u3-review-list using current content; the earlier approval is unchanged
+
+---
+
+## Worktree Created
+**Timestamp**: 2026-11-25T11:37:40Z
+**Event**: WORKTREE_CREATED
+**Bolt slug**: u2-report-duplicate
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate
+**Branch name**: bolt-a4824aa1_u2-report-duplicate
+**Base branch**: main
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+**Repo**: -
+**Intent record**: aidlc/spaces/default/intents/261122-monsternote-task-app
+**Swarm Unit**: u2-report-duplicate
+**Swarm Batch**: 2
+**Swarm Stage**: code-generation
+**Swarm Run floor**: STAGE_STARTED:2026-11-24T10:00:23Z#1
+
+---
+
+## Bolt Started
+**Timestamp**: 2026-11-25T11:37:41Z
+**Event**: BOLT_STARTED
+**Bolt names**: u2-report-duplicate
+**Batch number**: 2
+**Walking skeleton**: false
+**Bolt slug**: u2-report-duplicate
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+
+---
+
+## State Forked
+**Timestamp**: 2026-11-25T11:37:41Z
+**Event**: STATE_FORKED
+**Bolt slug**: u2-report-duplicate
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate
+**Source state hash**: 500ed9a4ada05c1790724f759ab5aeb1ba1784d11c26a80584edbca6fe190d94
+**Target state hash**: 500ed9a4ada05c1790724f759ab5aeb1ba1784d11c26a80584edbca6fe190d94
+
+---
+
+## Audit Forked
+**Timestamp**: 2026-11-25T11:37:41Z
+**Event**: AUDIT_FORKED
+**Bolt slug**: u2-report-duplicate
+**Source Audit Hash**: 369db01bac13b653cd600309d51b649749b7dbe401fd30335e3954961088dfed
+**Fork Boundary**: 1309350
+
+---
+
+## Worktree Created
+**Timestamp**: 2026-11-25T11:37:45Z
+**Event**: WORKTREE_CREATED
+**Bolt slug**: u3-review-list
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u3-review-list
+**Branch name**: bolt-a4824aa1_u3-review-list
+**Base branch**: main
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+**Repo**: -
+**Intent record**: aidlc/spaces/default/intents/261122-monsternote-task-app
+**Swarm Unit**: u3-review-list
+**Swarm Batch**: 2
+**Swarm Stage**: code-generation
+**Swarm Run floor**: STAGE_STARTED:2026-11-24T10:00:23Z#1
+
+---
+
+## Bolt Started
+**Timestamp**: 2026-11-25T11:37:45Z
+**Event**: BOLT_STARTED
+**Bolt names**: u3-review-list
+**Batch number**: 2
+**Walking skeleton**: false
+**Bolt slug**: u3-review-list
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+
+---
+
+## State Forked
+**Timestamp**: 2026-11-25T11:37:45Z
+**Event**: STATE_FORKED
+**Bolt slug**: u3-review-list
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u3-review-list
+**Source state hash**: 9d5427175f613bdcbf7b12e7f5512f79cd4ab79854c246f2d8367e6054f92fca
+**Target state hash**: 9d5427175f613bdcbf7b12e7f5512f79cd4ab79854c246f2d8367e6054f92fca
+
+---
+
+## Audit Forked
+**Timestamp**: 2026-11-25T11:37:45Z
+**Event**: AUDIT_FORKED
+**Bolt slug**: u3-review-list
+**Source Audit Hash**: 130a164e87f8939f627abec90e0cd57c71dbf22a0f2bde2dd67550f5c46c3688
+**Fork Boundary**: 1310918
+
+---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-25T11:38:00Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: testing-posture begin
+**Details**: begin for unit:u2-report-duplicate using current content; the earlier approval is unchanged
+
+---
+
+## Guard Stood Aside
+**Timestamp**: 2026-11-25T11:38:02Z
+**Event**: GUARD_STOOD_ASIDE
+**Guard**: plan-approval
+**Authority**: instruction
+**Grant**: none
+**Actor**: main
+**Stage**: code-generation
+**Tool**: testing-posture begin
+**Details**: begin for unit:u3-review-list using current content; the earlier approval is unchanged
+
+---
+
+## Bolt Failed
+**Timestamp**: 2026-11-25T11:38:04Z
+**Event**: BOLT_FAILED
+**Failed Bolt**: u2-report-duplicate
+**Error summary**: Interrupted swarm preparation; source and records preserved for recovery
+**Bolt slug**: u2-report-duplicate
+
+---
+
+## Bolt Started
+**Timestamp**: 2026-11-25T11:38:04Z
+**Event**: BOLT_STARTED
+**Bolt names**: u2-report-duplicate
+**Batch number**: 2
+**Walking skeleton**: false
+**Bolt slug**: u2-report-duplicate
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+
+---
+
+## State Forked
+**Timestamp**: 2026-11-25T11:38:04Z
+**Event**: STATE_FORKED
+**Bolt slug**: u2-report-duplicate
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u2-report-duplicate
+**Source state hash**: b79a08e9ec61ffec14c5118781f96ca3dfa353d7ef052bd987a0ecc1e8503c33
+**Target state hash**: b79a08e9ec61ffec14c5118781f96ca3dfa353d7ef052bd987a0ecc1e8503c33
+
+---
+
+## Audit Forked
+**Timestamp**: 2026-11-25T11:38:04Z
+**Event**: AUDIT_FORKED
+**Bolt slug**: u2-report-duplicate
+**Source Audit Hash**: fffb826c02c5edaf54c38fa069376abd79c50823ab47463cd43952930cf35efd
+**Fork Boundary**: 1312783
+
+---
+
+## Bolt Failed
+**Timestamp**: 2026-11-25T11:38:09Z
+**Event**: BOLT_FAILED
+**Failed Bolt**: u3-review-list
+**Error summary**: Interrupted swarm preparation; source and records preserved for recovery
+**Bolt slug**: u3-review-list
+
+---
+
+## Bolt Started
+**Timestamp**: 2026-11-25T11:38:10Z
+**Event**: BOLT_STARTED
+**Bolt names**: u3-review-list
+**Batch number**: 2
+**Walking skeleton**: false
+**Bolt slug**: u3-review-list
+**Base commit**: 23dafdd9b898798d88f5eaa611d51be2117cee6f
+**Base Source Listing**: sha256:c6f18750cbc2b2836e5e705b140f7565dd93b050fd809ee6cb7ef6615cad020a
+
+---
+
+## State Forked
+**Timestamp**: 2026-11-25T11:38:10Z
+**Event**: STATE_FORKED
+**Bolt slug**: u3-review-list
+**Worktree path**: .aidlc/worktrees/bolt-a4824aa1_u3-review-list
+**Source state hash**: 9d5427175f613bdcbf7b12e7f5512f79cd4ab79854c246f2d8367e6054f92fca
+**Target state hash**: 9d5427175f613bdcbf7b12e7f5512f79cd4ab79854c246f2d8367e6054f92fca
+
+---
+
+## Audit Forked
+**Timestamp**: 2026-11-25T11:38:10Z
+**Event**: AUDIT_FORKED
+**Bolt slug**: u3-review-list
+**Source Audit Hash**: 59fc9d4a20963e3e39d58b5dc7178d4e7774a33813ed53aaa11968e8580bcb2f
+**Fork Boundary**: 1313948
+
+---
