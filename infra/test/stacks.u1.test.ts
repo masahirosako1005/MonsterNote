@@ -154,6 +154,21 @@ describe('Web（画面の配信）', () => {
       }),
     });
   });
+
+  it('CSPのimg-srcはOpenStreetMapの地図タイルを許可する（MapPicker.tsxが直接取得するため）', () => {
+    t.web!.hasResourceProperties('AWS::CloudFront::ResponseHeadersPolicy', {
+      ResponseHeadersPolicyConfig: Match.objectLike({
+        SecurityHeadersConfig: Match.objectLike({
+          ContentSecurityPolicy: {
+            ContentSecurityPolicy: Match.stringLikeRegexp(
+              'img-src[^;]*https://tile\\.openstreetmap\\.org',
+            ),
+            Override: true,
+          },
+        }),
+      }),
+    });
+  });
 });
 
 describe('Data（DynamoDB と写真の S3）', () => {
@@ -428,6 +443,21 @@ describe('Api（HTTP API・関数・知らせ・監視）', () => {
       Protocol: 'email',
       Endpoint: 'alarm@example.com',
     });
+  });
+
+  it('観測用ダッシュボードが1個ある（observability-setup。新しい指標・アラームは増やさず既存のものをまとめる）', () => {
+    t.api!.resourceCountIs('AWS::CloudWatch::Dashboard', 1);
+    t.api!.hasResourceProperties('AWS::CloudWatch::Dashboard', {
+      DashboardName: 'masahiro-cloudwatch-monsternote-operations',
+    });
+    const dashboards = resourcesOf(t.api!, 'AWS::CloudWatch::Dashboard');
+    const body = JSON.stringify(dashboards[0]!.Properties.DashboardBody);
+    // ウィジェット5個ぶん: API の健康状態・アラームの状態・関数グループ0・関数グループ1・EventBridge の配達失敗
+    expect(body).toContain('API の健康状態');
+    expect(body).toContain('アラームの状態');
+    expect(body).toContain('関数グループ 0');
+    expect(body).toContain('関数グループ 1');
+    expect(body).toContain('FailedInvocations');
   });
 });
 

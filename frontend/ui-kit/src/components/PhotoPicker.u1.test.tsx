@@ -49,6 +49,11 @@ describe('PhotoPicker', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('写真を読めませんでした');
   });
 
+  it('capture属性を付けない（OSのネイティブピッカーで「撮る」「選ぶ」の両方を出すため）', () => {
+    render(<PhotoPicker onPicked={vi.fn()} resize={vi.fn()} />);
+    expect(screen.getByTestId('photo-input')).not.toHaveAttribute('capture');
+  });
+
   it('アップロード中は進み具合を表示し、撮り直せない', () => {
     render(<PhotoPicker onPicked={vi.fn()} resize={vi.fn()} uploading />);
     expect(screen.getByTestId('photo-uploading')).toHaveTextContent('写真を送っています');

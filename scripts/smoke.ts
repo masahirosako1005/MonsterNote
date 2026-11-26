@@ -172,7 +172,12 @@ async function main() {
     const res = await api<{ reportId: string }>(env.API_URL, 'POST', '/v1/reports', hunterToken, {
       submissionKey: `smoke-${randomUUID()}`,
       photos: { body: photoId, tail: tailPhotoId },
-      location: { lat: 35.0, lng: 135.0 },
+      // 同じ場所・種類・時期だと重複の疑い（409）になるため、毎回わずかにずらす
+      // （duplicateDistanceMeters の既定よりずっと大きい約0.05度≈5.5kmのジッター。perf-check.ts と同じ修正）
+      location: {
+        lat: 35.0 + (Math.random() - 0.5) * 0.1,
+        lng: 135.0 + (Math.random() - 0.5) * 0.1,
+      },
       locationSource: 'manual',
       capturedAt: new Date().toISOString(),
       capturedAtSource: 'manual',
