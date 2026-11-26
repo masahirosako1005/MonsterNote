@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { resizeImage } from '@ui-kit/image/resize';
 import { browserPosition, type GeoPoint } from '@ui-kit/components/LocationGate';
-import type { Sex, Species } from '@ui-kit/labels';
+import type { AgeClass, CaptureMethod, Sex, Species } from '@ui-kit/labels';
 
 export interface HunterDeps {
   resize: (file: Blob, maxEdge: number) => Promise<Blob>;
@@ -19,9 +19,20 @@ export const defaultDeps: HunterDeps = {
 /** 報告の作成中の内容（frontend-components 3: 写真の ID、種類、雌雄、送信のキー） */
 export interface Draft {
   photoId?: string;
+  // U2（新規。Build and Testで発見: バックエンドは必須だが画面で一度も集めていなかった）
+  tailPhotoId?: string;
+  chestPhotoId?: string;
+  /** クマで、胸の写真を撮らなかったとき true（BR2.17） */
+  chestPhotoMissing?: boolean;
   species?: Species;
   sex?: Sex;
+  ageClass?: AgeClass;
+  captureMethod?: CaptureMethod;
   submissionKey?: string;
+  /** 全身の写真の自動判別の結果（BR6.4。種類の選択をこの値で初期化する） */
+  autoDetectionOutcome?: 'detected' | 'undetected';
+  autoDetectedSpecies?: Species;
+  autoDetectionConfidence?: number;
 }
 
 /** 送ったばかりで、まだ一覧に届いていない報告（UC2 の 8） */
@@ -72,4 +83,9 @@ export function newSubmissionKey(): string {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** BR2.19（U2）: 作成中にホームへ戻る前に確かめる。「消す」なら true */
+export function confirmDiscard(): boolean {
+  return window.confirm('写真と入力内容は消えます。よろしいですか？');
 }

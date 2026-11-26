@@ -11,7 +11,8 @@ export type ComponentName =
   | 'DuplicateDetection'
   | 'Review'
   | 'ReportCatalog'
-  | 'Settings';
+  | 'Settings'
+  | 'AuditLog';
 
 export interface EventEnvelope<T = Record<string, unknown>> {
   eventId: string;
@@ -37,12 +38,32 @@ export interface ReportSavedData {
   bodyPhotoId: string;
 }
 
-/** review.status-changed の中身（C13） */
+/** review.status-changed の中身（C13）。reason・undone は U3 で使う（却下の理由・取り消し） */
 export interface ReviewStatusChangedData {
   reportId: string;
   status: 'checking' | 'approved' | 'rejected';
   previousStatus: 'none' | 'checking' | 'approved' | 'rejected';
+  reason?: 'duplicate' | 'insufficient-photo' | 'out-of-scope' | 'other';
+  undone?: boolean;
   changedAt: string;
+}
+
+/** duplicate.suspected の中身（C14。U2）。疑いの組ごとに reportId 側・matchedReportId 側で 2 つ送る */
+export interface DuplicateSuspectedData {
+  reportId: string;
+  matchedReportId: string;
+  kind: 'place-time' | 'photo' | 'moon-ring';
+}
+
+/** audit.recorded の中身（C15。U4）。BR12.3: パスワード・写真・報告の中身・却下の理由の文は入れない */
+export interface AuditRecordedData {
+  actorAccountId?: string;
+  actorName?: string;
+  action: string;
+  targetType: 'report' | 'account' | 'settings' | 'data';
+  targetId?: string;
+  outcome: 'succeeded' | 'failed';
+  detail?: Record<string, unknown>;
 }
 
 export class EventPublishError extends Error {
@@ -107,6 +128,39 @@ export async function withTimeout<T>(
     return await Promise.race([promise, timeout]);
   } finally {
     clearTimeout(timer);
+  }
+}
+
+/**
+ * audit.recorded を送る（U4・BR12.5）。操作の記録は補助的な観測のため、送信に失敗しても
+ * 呼び出し元の主な処理は失敗させない（ログに残すだけ。fire-and-log）。送信元（この関数）が
+ * detail にパスワード・写真・報告の中身・却下の理由の文を含めないことに責任を持つ（NFR5.16）。
+ */
+export async function publishAuditRecorded(
+  client: EventBridgeClient,
+  busName: string,
+  source: ComponentName,
+  data: AuditRecordedData,
+  options: {
+    actorAccountId?: string;
+    now?: () => Date;
+    newId?: () => string;
+    publishOptions?: PublishOptions;
+    onError?: (err: unknown, eventId: string) => void;
+  } = {},
+): Promise<void> {
+  const envelope = createEnvelope<AuditRecordedData>({
+    type: 'audit.recorded',
+    source,
+    actorAccountId: options.actorAccountId,
+    now: options.now,
+    newId: options.newId,
+    data,
+  });
+  try {
+    await publishEvent(client, busName, envelope, options.publishOptions);
+  } catch (err) {
+    options.onError?.(err, envelope.eventId);
   }
 }
 

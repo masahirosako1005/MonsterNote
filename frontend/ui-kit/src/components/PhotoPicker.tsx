@@ -12,12 +12,15 @@ export interface PhotoPickerProps {
   onPicked: (photo: Blob) => void;
   resize?: (file: Blob, maxEdge: number) => Promise<Blob>;
   uploading?: boolean;
+  /** ボタンの文言（U2・新規: 全身以外の写真〈尻尾・胸〉でも再利用するため） */
+  label?: string;
 }
 
 export function PhotoPicker({
   onPicked,
   resize = resizeImage,
   uploading = false,
+  label = '全身の写真を撮る・選ぶ',
 }: PhotoPickerProps) {
   const [error, setError] = useState<string>();
 
@@ -52,7 +55,7 @@ export function PhotoPicker({
         disabled={uploading}
         sx={{ mt: 2 }}
       >
-        全身の写真を撮る・選ぶ
+        {label}
         <input
           hidden
           type="file"

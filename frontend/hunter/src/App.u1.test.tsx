@@ -23,8 +23,12 @@ async function login() {
   await userEvent.click(screen.getByTestId('login-submit'));
 }
 
-/** 写真の受け付け → S3 への POST → complete の応答 */
-function photoHandlers() {
+/** 写真の受け付け → S3 への POST → complete の応答（U2: 全身の写真は判別の結果を含む） */
+function photoHandlers(
+  detection: { outcome: string; species?: string; confidence?: number } = {
+    outcome: 'undetected',
+  },
+) {
   return [
     http.post(`${API}/v1/photos`, () =>
       HttpResponse.json(
@@ -39,7 +43,7 @@ function photoHandlers() {
     ),
     http.post('http://s3.test/bucket', () => new HttpResponse(null, { status: 204 })),
     http.post(`${API}/v1/photos/photo-1/complete`, () =>
-      HttpResponse.json({ photoId: 'photo-1', uploadStatus: 'uploaded' }),
+      HttpResponse.json({ photoId: 'photo-1', uploadStatus: 'uploaded', detection }),
     ),
   ];
 }
@@ -48,15 +52,26 @@ async function goToSubmit() {
   await userEvent.click(await screen.findByTestId('start-report'));
   const file = new File(['x'], 'body.jpg', { type: 'image/jpeg' });
   await userEvent.upload(await screen.findByTestId('photo-input'), file);
-  // 種類と雌雄（選ぶまで次へは押せない）
+  // U2: アップロードの完了で判別の結果（またはできなかった旨）を見せてから次へ進む（BR6.2〜BR6.4）
+  await userEvent.click(await screen.findByTestId('photo-next'));
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  const tailFile = new File(['x'], 'tail.jpg', { type: 'image/jpeg' });
+  await userEvent.upload(await screen.findByTestId('photo-input'), tailFile);
+  await userEvent.click(await screen.findByTestId('photo-tail-next'));
+  // 種類・雌雄・成獣／幼獣・捕獲の方法（すべて選ぶまで次へは押せない）
   const next = await screen.findByTestId('choice-next');
   expect(next).toBeDisabled();
   await userEvent.click(screen.getByTestId('species-boar'));
   expect(next).toBeDisabled();
   await userEvent.click(screen.getByTestId('sex-male'));
+  expect(next).toBeDisabled();
+  await userEvent.click(screen.getByTestId('age-class-adult'));
+  expect(next).toBeDisabled();
+  await userEvent.click(screen.getByTestId('capture-method-trap'));
   expect(next).toBeEnabled();
   await userEvent.click(next);
-  await screen.findByTestId('location-ok');
+  // U2: 位置は地図（MapPicker）で指す
+  await screen.findByTestId('map-tiles');
 }
 
 describe('HunterApp', () => {
@@ -97,7 +112,9 @@ describe('HunterApp', () => {
       photos: { body: 'photo-1' },
       species: 'boar',
       sex: 'male',
-      location: { lat: 35.1, lng: 135.2 },
+      // U2: 位置は地図（MapPicker）の既定の中心から始まる（選び直さなければそのまま送る）
+      location: { lat: 36.2, lng: 138.3 },
+      confirmedNotDuplicate: false,
     });
     expect(typeof (sent[0] as { submissionKey: string }).submissionKey).toBe('string');
     await userEvent.click(screen.getByTestId('go-home'));

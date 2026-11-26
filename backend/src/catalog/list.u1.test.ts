@@ -110,6 +110,13 @@ describe('GET /v1/catalog/reports（依頼元）', () => {
     expect((await list(hunterClaims(), '/v1/catalog/reports')).statusCode).toBe(403);
   });
 
+  it('U4（D-8）: 管理者も開ける（「すべて削除」の確認画面が件数を見せるため。BR13.2）', async () => {
+    ddbMock.on(QueryCommand, { Select: 'COUNT' }).resolves({ Count: 0 });
+    ddbMock.on(QueryCommand).resolves({ Items: [] });
+    const res = await list({ sub: 'admin-a', 'cognito:groups': '[admin]' }, '/v1/catalog/reports');
+    expect(res.statusCode).toBe(200);
+  });
+
   it('全件数は索引のページをまたいで数える', async () => {
     ddbMock
       .on(QueryCommand, { Select: 'COUNT' })

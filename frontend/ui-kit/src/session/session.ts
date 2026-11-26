@@ -19,23 +19,34 @@ interface TokenResponse {
 
 export interface SessionStoreOptions {
   baseUrl: string;
-  requiredRole: Role;
+  /** U4: 管理者の画面を依頼元アプリの中に収めるため、複数の役割を許せるようにする */
+  requiredRole: Role | Role[];
   storage?: Storage;
   fetchFn?: typeof fetch;
   onChange?: (account: SessionAccount | undefined) => void;
 }
 
-const ROLE_MESSAGES: Record<Role, string> = {
-  hunter: 'この画面はハンターの方だけが使えます',
-  requester: 'この画面は依頼元の方だけが使えます',
-  admin: 'この画面は管理者の方だけが使えます',
+const ROLE_LABELS: Record<Role, string> = {
+  hunter: 'ハンター',
+  requester: '依頼元',
+  admin: '管理者',
 };
+
+function allowedRoles(requiredRole: Role | Role[]): Role[] {
+  return Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+}
+
+function roleMessage(allowed: Role[]): string {
+  return `この画面は${allowed.map((r) => ROLE_LABELS[r]).join('・')}の方だけが使えます`;
+}
 
 export type SessionStore = ReturnType<typeof createSessionStore>;
 
 export function createSessionStore(options: SessionStoreOptions) {
   const storage = options.storage ?? window.localStorage;
-  const storageKey = `monsternote.${options.requiredRole}.refreshToken`;
+  const allowed = allowedRoles(options.requiredRole);
+  // 複数の役割を許す画面でも、保存場所は1つにまとめる（同じアプリの中でどちらの役割でも使うため）
+  const storageKey = `monsternote.${allowed.slice().sort().join('+')}.refreshToken`;
   let idToken: string | undefined;
   let account: SessionAccount | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -69,8 +80,8 @@ export function createSessionStore(options: SessionStoreOptions) {
   }
 
   function accept(res: TokenResponse) {
-    if (res.account.role !== options.requiredRole) {
-      throw new Error(ROLE_MESSAGES[options.requiredRole]);
+    if (!allowed.includes(res.account.role)) {
+      throw new Error(roleMessage(allowed));
     }
     idToken = res.idToken;
     account = res.account;

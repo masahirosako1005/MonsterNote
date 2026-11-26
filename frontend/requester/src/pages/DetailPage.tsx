@@ -1,13 +1,26 @@
-// R3 報告の詳細と承認（UC3 の 3、UC4。BR2.8・BR3.3・BR3.6・BR3.7・BR6.1）
+// R3 報告の詳細と承認・却下（UC3 の 3、UC4、UC15・UC16。BR2.8・BR3.3・BR3.6・BR3.7・BR3.8・BR3.9・BR6.1）
+// U2: 重複の疑いの相手の一覧も読んで見せる（C5。BR8.8・BR8.9・Q7。却下された相手の状態もあわせて出す）
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Alert, Button, Stack } from '@mui/material';
+import { Alert, Button, Stack, Typography } from '@mui/material';
 import { ApiError } from '@ui-kit/api/client';
 import { DecisionBar } from '@ui-kit/components/DecisionBar';
+import { RejectReasonForm } from '@ui-kit/components/RejectReasonForm';
 import { ReportDetail, type ReportDetailData } from '@ui-kit/components/ReportDetail';
+import { STATUS_LABELS } from '@ui-kit/labels';
+import { UndoButton } from '@ui-kit/components/UndoButton';
 import { useSession } from '@ui-kit/session/SessionContext';
 import { Loading } from '@ui-kit/AppFrame';
-import { approve, getReport, getReview, type ReviewView } from '../api';
+import {
+  approve,
+  getReport,
+  getReview,
+  listDuplicates,
+  reject,
+  undoDecision,
+  type DuplicateMatchView,
+  type ReviewView,
+} from '../api';
 import { RequesterShell } from './RequesterShell';
 
 export function DetailPage() {
@@ -16,7 +29,9 @@ export function DetailPage() {
   const navigate = useNavigate();
   const [report, setReport] = useState<ReportDetailData>();
   const [review, setReview] = useState<ReviewView>();
+  const [duplicates, setDuplicates] = useState<DuplicateMatchView[]>();
   const [error, setError] = useState<string>();
+  const [rejecting, setRejecting] = useState(false);
 
   const loadReview = useCallback(async () => {
     setReview(await getReview(store.api, reportId));
@@ -36,10 +51,29 @@ export function DetailPage() {
           `報告を読めませんでした。${err instanceof ApiError && err.requestId ? `（問い合わせ番号: ${err.requestId}）` : ''}`,
         );
       });
+    // 重複の疑いは詳細とは別に読む（失敗しても詳細の表示は止めない）
+    listDuplicates(store.api, reportId).then(
+      (result) => {
+        if (active) setDuplicates(result.matches);
+      },
+      () => {
+        if (active) setDuplicates([]);
+      },
+    );
     return () => {
       active = false;
     };
   }, [store, reportId]);
+
+  const handleUndo = async () => {
+    // D-6・NFR7.7: ALREADY_UNDONE・UNDO_EXPIRED は undoDecision が吸収し、ここには届かない。
+    // それ以外の失敗は UndoButton 側で表示する。成功・吸収のどちらでも、応答を受けて状態を出し直す。
+    try {
+      await undoDecision(store.api, reportId);
+    } finally {
+      await loadReview();
+    }
+  };
 
   return (
     <RequesterShell>
@@ -62,11 +96,38 @@ export function DetailPage() {
               status={review.status}
               decidedByName={review.decidedByName}
               decidedAt={review.decidedAt}
+              reason={review.reason}
+              reasonText={review.reasonText}
             />
+            {duplicates && duplicates.length > 0 && (
+              <Stack spacing={1} data-testid="duplicate-list">
+                <Typography variant="h6">重複の疑いがある報告</Typography>
+                {duplicates.map((d) => (
+                  <Typography key={d.matchedReportId} data-testid="duplicate-row">
+                    {STATUS_LABELS[d.matchedStatus] ?? d.matchedStatus}・約{' '}
+                    {d.distanceMeters ?? '—'} m
+                  </Typography>
+                ))}
+              </Stack>
+            )}
             <DecisionBar
               status={review.status}
               onApprove={() => approve(store.api, reportId)}
+              onReject={() => setRejecting(true)}
               onDecided={() => void loadReview()}
+            />
+            {review.undoUntil && (
+              // key: undoUntil が変わったら（取り消し後にもう一度確認したときなど）作り直す
+              <UndoButton key={review.undoUntil} undoUntil={review.undoUntil} onUndo={handleUndo} />
+            )}
+            <RejectReasonForm
+              open={rejecting}
+              onCancel={() => setRejecting(false)}
+              onConfirm={async (input) => {
+                await reject(store.api, reportId, input);
+                setRejecting(false);
+                await loadReview();
+              }}
             />
           </>
         )}

@@ -28,6 +28,12 @@ function buildTheme(fontPx: number, buttonPx: number): Theme {
           root: { minHeight: buttonPx, fontSize: font },
         },
       },
+      // U3: 絞り込み（FilterBar）のトグルボタンも、MuiButton と同じ寸法にする（NFR7.6）
+      MuiToggleButton: {
+        styleOverrides: {
+          root: { minHeight: buttonPx, fontSize: font },
+        },
+      },
       MuiInputBase: {
         styleOverrides: { root: { fontSize: font } },
       },

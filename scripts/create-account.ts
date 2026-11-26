@@ -1,8 +1,9 @@
-// アカウントを作るスクリプト（U1 の手順書。BR5.1、UC7、NFR6.3）。
+// アカウントを作るスクリプト（U1 の手順書。BR5.1、UC7、NFR6.3。U4で最初の管理者の作成も担う。BR11.11）。
 // 使い方:
-//   USER_POOL_ID=... ACCOUNTS_TABLE=... npm run account:create -- --role hunter --login-id hunter01 \
-//     --display-name "ハンター A" --hunter-number 123
+//   USER_POOL_ID=... ACCOUNTS_TABLE=... ADMIN_COUNTER_TABLE=... npm run account:create -- --role hunter \
+//     --login-id hunter01 --display-name "ハンター A" --hunter-number 123
 //   npm run account:create -- --role requester --login-id city01 --display-name "市の担当" --organization municipality
+//   npm run account:create -- --role admin --login-id admin01 --display-name "管理者 A"
 // 開発者の手元の AWS の認証情報（default のプロファイル）を使う。仮のパスワードは標準出力に 1 回だけ出す（ファイルに書かない）。
 import { randomInt } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
@@ -14,7 +15,7 @@ import {
   CognitoIdentityProviderClient,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 
 export interface CreateAccountInput {
   role: string;
@@ -29,6 +30,8 @@ export interface CreateAccountDeps {
   ddb: DynamoDBDocumentClient;
   userPoolId: string;
   accountsTable: string;
+  /** U4: role=admin のときに有効な管理者の数を1増やす表（reliability-design.md §1） */
+  adminCounterTable: string;
   now?: () => Date;
   out?: (line: string) => void;
   password?: () => string;
@@ -70,7 +73,7 @@ export function validateInput(input: CreateAccountInput): string[] {
       errors.push(`依頼元には --organization（${ORGANIZATIONS.join(' か ')}）が必要です`);
     }
   } else if (input.role === 'admin') {
-    errors.push('U1 では admin のアカウントは作れません（管理者の画面は U4）');
+    // U4: 最初の管理者はこのスクリプトで作る（BR11.11）。2人目以降は管理者の画面から
   } else {
     errors.push('--role は hunter か requester です');
   }
@@ -133,22 +136,43 @@ export async function createAccount(
       }),
     );
     await deps.ddb.send(
-      new PutCommand({
-        TableName: deps.accountsTable,
-        Item: {
-          accountId,
-          loginId: input.loginId,
-          displayName: input.displayName,
-          role: input.role,
-          ...(input.organization ? { organization: input.organization } : {}),
-          status: 'active',
-          mustChangePassword: false,
-          ...(input.role === 'hunter'
-            ? { consentedAt: now, hunterNumber: input.hunterNumber }
-            : {}),
-          createdAt: now,
-        },
-        ConditionExpression: 'attribute_not_exists(accountId)',
+      new TransactWriteCommand({
+        TransactItems: [
+          {
+            Put: {
+              TableName: deps.accountsTable,
+              Item: {
+                accountId,
+                loginId: input.loginId,
+                displayName: input.displayName,
+                role: input.role,
+                ...(input.organization ? { organization: input.organization } : {}),
+                status: 'active',
+                mustChangePassword: false,
+                ...(input.role === 'hunter'
+                  ? { consentedAt: now, hunterNumber: input.hunterNumber }
+                  : {}),
+                createdAt: now,
+                listPartition: 'ALL',
+              },
+              ConditionExpression: 'attribute_not_exists(accountId)',
+            },
+          },
+          // U4（reliability-design.md §1）: 最初の管理者。行がまだ無くても if_not_exists で安全に+1
+          ...(input.role === 'admin'
+            ? [
+                {
+                  Update: {
+                    TableName: deps.adminCounterTable,
+                    Key: { counterKey: 'admin-counter' },
+                    UpdateExpression:
+                      'SET activeAdminCount = if_not_exists(activeAdminCount, :zero) + :one, updatedAt = :now',
+                    ExpressionAttributeValues: { ':zero': 0, ':one': 1, ':now': now },
+                  },
+                },
+              ]
+            : []),
+        ],
       }),
     );
   } catch (err) {
@@ -168,9 +192,10 @@ async function main() {
   const input = parseArgs(process.argv.slice(2));
   const userPoolId = process.env.USER_POOL_ID;
   const accountsTable = process.env.ACCOUNTS_TABLE;
-  if (!userPoolId || !accountsTable) {
+  const adminCounterTable = process.env.ADMIN_COUNTER_TABLE;
+  if (!userPoolId || !accountsTable || !adminCounterTable) {
     throw new Error(
-      '環境変数 USER_POOL_ID と ACCOUNTS_TABLE を入れてください（cdk deploy の出力にあります）',
+      '環境変数 USER_POOL_ID・ACCOUNTS_TABLE・ADMIN_COUNTER_TABLE を入れてください（cdk deploy の出力にあります）',
     );
   }
   const region = process.env.AWS_REGION ?? 'ap-northeast-1';
@@ -180,6 +205,7 @@ async function main() {
       ddb: DynamoDBDocumentClient.from(new DynamoDBClient({ region })),
       userPoolId,
       accountsTable,
+      adminCounterTable,
     },
     input,
   );

@@ -9,6 +9,9 @@ import { hunterTheme } from '@ui-kit/theme';
 import { defaultDeps, HunterStateProvider, type HunterDeps } from './context';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const ProcedurePage = lazy(() =>
+  import('./pages/ProcedurePage').then((m) => ({ default: m.ProcedurePage })),
+);
 const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m.HomePage })));
 const PhotoPage = lazy(() => import('./pages/PhotoPage').then((m) => ({ default: m.PhotoPage })));
 const ChoicePage = lazy(() =>
@@ -37,6 +40,7 @@ export function HunterApp({ config, initialPath, deps }: HunterAppProps) {
       <HunterStateProvider deps={{ ...defaultDeps, ...deps }}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/procedure" element={guarded(<ProcedurePage />)} />
           <Route path="/" element={guarded(<HomePage />)} />
           <Route path="/report/photo" element={guarded(<PhotoPage />)} />
           <Route path="/report/choice" element={guarded(<ChoicePage />)} />

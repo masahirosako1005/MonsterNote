@@ -3,8 +3,10 @@ import type {
   APIGatewayProxyEventV2WithJWTAuthorizer,
   APIGatewayProxyStructuredResultV2,
 } from 'aws-lambda';
+import { getCaller, type Caller } from './auth';
 import { errors, toAppError } from './errors';
 import type { Logger } from './logger';
+import { isPasswordGateExempt } from './require-password-changed';
 
 export type HttpEvent = APIGatewayProxyEventV2WithJWTAuthorizer;
 export type HttpResult = APIGatewayProxyStructuredResultV2;
@@ -44,10 +46,20 @@ export function requestIdOf(event: HttpEvent): string {
   return event.requestContext.requestId;
 }
 
+export interface HttpHandlerOptions {
+  /**
+   * 仮のパスワードのままなら true を返す（U4・BR11.4）。呼び出し元（accounts は直接、
+   * ほかの関数は Accounts への内部の呼び出し）が実現する。証明があり、かつ
+   * PASSWORD_GATE_EXEMPT_ROUTES に無い道だけで確かめる
+   */
+  passwordGate?: (caller: Caller) => Promise<boolean>;
+}
+
 /** routeKey（例 "POST /v1/reports"）で処理を選び、例外を共通のエラーの形にする */
 export function createHttpHandler(
   routes: Record<string, RouteHandler>,
   logger: Logger,
+  options: HttpHandlerOptions = {},
 ): (event: HttpEvent) => Promise<HttpResult> {
   return async (event) => {
     const requestId = requestIdOf(event);
@@ -56,6 +68,17 @@ export function createHttpHandler(
     const handler = routes[route];
     try {
       if (!handler) throw errors.notFound();
+      if (options.passwordGate && !isPasswordGateExempt(route)) {
+        let caller: Caller | undefined;
+        try {
+          caller = getCaller(event);
+        } catch {
+          caller = undefined; // 証明がない道（ログインなど）はこの確認の対象外
+        }
+        if (caller && (await options.passwordGate(caller))) {
+          throw errors.passwordChangeRequired();
+        }
+      }
       const result = await handler(event);
       logger.info('応答', {
         requestId,

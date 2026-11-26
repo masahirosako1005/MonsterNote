@@ -11,6 +11,11 @@ export const ALLOWED_LOG_FIELDS = [
   'accountId',
   'reportId',
   'attempt',
+  // U4（observability-design.md §1・NFR11.21〜NFR11.24・NFR14.6）
+  'action',
+  'targetAccountId',
+  'componentName',
+  'deletedCount',
 ] as const;
 
 export type LogField = (typeof ALLOWED_LOG_FIELDS)[number];

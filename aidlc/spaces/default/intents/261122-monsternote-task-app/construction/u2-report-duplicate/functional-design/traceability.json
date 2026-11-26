@@ -1,0 +1,414 @@
+{
+  "stage": "functional-design",
+  "unit": "u2-report-duplicate",
+  "upstream_ids": [
+    "AC2.2.1",
+    "AC2.2.2",
+    "AC2.2.3",
+    "AC2.2.4",
+    "AC2.2.5",
+    "AC2.3.1",
+    "AC2.3.2",
+    "AC2.3.3",
+    "AC2.4.1",
+    "AC2.4.2",
+    "AC2.4.3",
+    "AC2.5.1",
+    "AC2.5.2",
+    "AC2.5.3",
+    "AC2.5.4",
+    "AC2.6.1",
+    "AC2.6.2",
+    "AC2.6.3",
+    "AC2.6.4",
+    "AC2.7.1",
+    "AC2.7.2",
+    "AC2.7.3",
+    "AC2.8.1",
+    "AC2.8.2",
+    "AC2.9.1",
+    "AC2.9.2",
+    "AC2.9.3",
+    "AC2.9.4",
+    "AC2.10.1",
+    "AC2.10.2",
+    "AC2.10.3",
+    "AC2.10.4",
+    "AC2.11.1",
+    "AC2.11.2",
+    "AC2.11.3",
+    "AC3.1.1",
+    "AC3.1.2",
+    "AC3.1.3",
+    "AC3.1.4",
+    "AC3.1.5",
+    "AC3.2.1",
+    "AC3.2.2",
+    "AC3.2.3",
+    "AC3.3.1",
+    "AC3.3.2",
+    "AC6.4.1",
+    "AC6.4.2",
+    "AC6.4.3",
+    "AC7.1.1",
+    "AC7.1.2",
+    "AC7.1.3",
+    "AC7.2.1",
+    "AC7.2.2",
+    "AC7.2.3"
+  ],
+  "coverage": [
+    {
+      "id": "AC2.2.1",
+      "status": "OK",
+      "target": "BR2.2"
+    },
+    {
+      "id": "AC2.2.2",
+      "status": "OK",
+      "target": "BR2.2"
+    },
+    {
+      "id": "AC2.2.3",
+      "status": "OK",
+      "target": "BR2.2"
+    },
+    {
+      "id": "AC2.2.4",
+      "status": "OK",
+      "target": "BR2.2"
+    },
+    {
+      "id": "AC2.2.5",
+      "status": "OK",
+      "target": "BR2.13"
+    },
+    {
+      "id": "AC2.3.1",
+      "status": "OK",
+      "target": "BR2.10"
+    },
+    {
+      "id": "AC2.3.2",
+      "status": "OK",
+      "target": "BR2.10"
+    },
+    {
+      "id": "AC2.3.3",
+      "status": "OK",
+      "target": "BR2.10"
+    },
+    {
+      "id": "AC2.4.1",
+      "status": "OK",
+      "target": "BR2.11"
+    },
+    {
+      "id": "AC2.4.2",
+      "status": "OK",
+      "target": "BR2.11"
+    },
+    {
+      "id": "AC2.4.3",
+      "status": "OK",
+      "target": "BR2.12"
+    },
+    {
+      "id": "AC2.5.1",
+      "status": "OK",
+      "target": "BR2.15"
+    },
+    {
+      "id": "AC2.5.2",
+      "status": "OK",
+      "target": "BR2.15"
+    },
+    {
+      "id": "AC2.5.3",
+      "status": "OK",
+      "target": "BR2.15"
+    },
+    {
+      "id": "AC2.5.4",
+      "status": "OK",
+      "target": "BR2.16"
+    },
+    {
+      "id": "AC2.6.1",
+      "status": "OK",
+      "target": "BR6.1"
+    },
+    {
+      "id": "AC2.6.2",
+      "status": "OK",
+      "target": "BR6.4"
+    },
+    {
+      "id": "AC2.6.3",
+      "status": "OK",
+      "target": "BR6.1"
+    },
+    {
+      "id": "AC2.6.4",
+      "status": "OK",
+      "target": "BR6.3"
+    },
+    {
+      "id": "AC2.7.1",
+      "status": "OK",
+      "target": "BR2.17"
+    },
+    {
+      "id": "AC2.7.2",
+      "status": "OK",
+      "target": "BR2.17"
+    },
+    {
+      "id": "AC2.7.3",
+      "status": "OK",
+      "target": "BR2.18"
+    },
+    {
+      "id": "AC2.8.1",
+      "status": "OK",
+      "target": "BR2.17"
+    },
+    {
+      "id": "AC2.8.2",
+      "status": "OK",
+      "target": "BR2.17"
+    },
+    {
+      "id": "AC2.9.1",
+      "status": "OK",
+      "target": "BR2.17"
+    },
+    {
+      "id": "AC2.9.2",
+      "status": "OK",
+      "target": "BR2.17"
+    },
+    {
+      "id": "AC2.9.3",
+      "status": "OK",
+      "target": "BR2.17"
+    },
+    {
+      "id": "AC2.9.4",
+      "status": "OK",
+      "target": "BR2.20"
+    },
+    {
+      "id": "AC2.10.1",
+      "status": "OK",
+      "target": "BR2.17"
+    },
+    {
+      "id": "AC2.10.2",
+      "status": "OK",
+      "target": "BR2.17"
+    },
+    {
+      "id": "AC2.10.3",
+      "status": "OK",
+      "target": "BR2.7"
+    },
+    {
+      "id": "AC2.10.4",
+      "status": "OK",
+      "target": "BR2.6"
+    },
+    {
+      "id": "AC2.11.1",
+      "status": "OK",
+      "target": "BR2.19"
+    },
+    {
+      "id": "AC2.11.2",
+      "status": "OK",
+      "target": "BR2.19"
+    },
+    {
+      "id": "AC2.11.3",
+      "status": "OK",
+      "target": "BR2.19"
+    },
+    {
+      "id": "AC3.1.1",
+      "status": "OK",
+      "target": "BR8.1"
+    },
+    {
+      "id": "AC3.1.2",
+      "status": "OK",
+      "target": "BR8.1"
+    },
+    {
+      "id": "AC3.1.3",
+      "status": "OK",
+      "target": "BR8.1"
+    },
+    {
+      "id": "AC3.1.4",
+      "status": "OK",
+      "target": "BR8.1"
+    },
+    {
+      "id": "AC3.1.5",
+      "status": "OK",
+      "target": "BR8.7"
+    },
+    {
+      "id": "AC3.2.1",
+      "status": "OK",
+      "target": "BR7.3"
+    },
+    {
+      "id": "AC3.2.2",
+      "status": "OK",
+      "target": "BR7.2"
+    },
+    {
+      "id": "AC3.2.3",
+      "status": "OK",
+      "target": "BR7.4"
+    },
+    {
+      "id": "AC3.3.1",
+      "status": "OK",
+      "target": "BR8.4"
+    },
+    {
+      "id": "AC3.3.2",
+      "status": "OK",
+      "target": "BR8.4"
+    },
+    {
+      "id": "AC6.4.1",
+      "status": "OK",
+      "target": "BR8.10"
+    },
+    {
+      "id": "AC6.4.2",
+      "status": "OK",
+      "target": "BR2.16"
+    },
+    {
+      "id": "AC6.4.3",
+      "status": "N/A",
+      "target": "設定を変える画面は u4-accounts-admin。U2 は値の範囲の決まり（BR9.2）だけを置く"
+    },
+    {
+      "id": "AC7.1.1",
+      "status": "N/A",
+      "target": "次の版に回す（Q1。写真の重複は US7.1、kind: photo のデータの形だけ残す）"
+    },
+    {
+      "id": "AC7.1.2",
+      "status": "N/A",
+      "target": "次の版に回す（Q1。写真の重複は US7.1）"
+    },
+    {
+      "id": "AC7.1.3",
+      "status": "N/A",
+      "target": "次の版に回す（Q1。写真の重複は US7.1）"
+    },
+    {
+      "id": "AC7.2.1",
+      "status": "N/A",
+      "target": "次の版に回す（Q1。月の輪の照合は US7.2、kind: moon-ring のデータの形だけ残す）"
+    },
+    {
+      "id": "AC7.2.2",
+      "status": "N/A",
+      "target": "次の版に回す（Q1。月の輪の照合は US7.2。この基準が満たされるのは機能がないためで、BR2.17 の働きではない。レビュー R-04）"
+    },
+    {
+      "id": "AC7.2.3",
+      "status": "N/A",
+      "target": "次の版に回す（Q1。scope-document の取り決めどおり）"
+    }
+  ],
+  "reverse": [
+    {
+      "id": "BR2.13",
+      "status": "N/A",
+      "target": "結び付かなかった写真の 24 時間の自動削除（FR2.9 の仕組み側。受け入れ基準は画面の「やめる」だけを述べている）"
+    },
+    {
+      "id": "BR2.14",
+      "status": "N/A",
+      "target": "自動削除の遅れに備えた技術上の確認（Q4 の補い。受け入れ基準なし）"
+    },
+    {
+      "id": "BR2.9",
+      "status": "N/A",
+      "target": "アップロードの完了の確認（U1 から引き継ぐ技術上の決まり。受け入れ基準は写真が表示されることだけを述べている）"
+    },
+    {
+      "id": "BR6.2",
+      "status": "N/A",
+      "target": "判別を呼ぶ時機の決まり（Q6。約束 C2 の実現方法で、受け入れ基準なし）"
+    },
+    {
+      "id": "BR6.5",
+      "status": "N/A",
+      "target": "判別の結果の読み取りの権限（NFR4 由来の技術上の決まり）"
+    },
+    {
+      "id": "BR7.1",
+      "status": "N/A",
+      "target": "送信の処理の順番の決まり（AC3.2.1 の前提。疑いの判定を保存の前に行う）"
+    },
+    {
+      "id": "BR8.2",
+      "status": "N/A",
+      "target": "距離の計算方法（FR6.2。AC3.1.1・AC3.1.4 の数値の根拠）"
+    },
+    {
+      "id": "BR8.3",
+      "status": "N/A",
+      "target": "比べる相手の絞り方（Q5。結果は AC3.1.1〜AC3.1.4 と同じで、受け入れ基準なし）"
+    },
+    {
+      "id": "BR8.5",
+      "status": "N/A",
+      "target": "送信の前の問い合わせでは記録しない決まり（C14 の取り決め。受け入れ基準なし）"
+    },
+    {
+      "id": "BR8.6",
+      "status": "N/A",
+      "target": "同じ疑いを 2 回作らない決まり（知らせの再送への備え。受け入れ基準なし）"
+    },
+    {
+      "id": "BR8.8",
+      "status": "N/A",
+      "target": "相手が却下されたあとの疑いの扱い（Q7。受け入れ基準では決まっていなかった点）"
+    },
+    {
+      "id": "BR8.9",
+      "status": "N/A",
+      "target": "疑いの相手の一覧を読める人（FR8.3・NFR4。画面は u3-review-list）"
+    },
+    {
+      "id": "BR9.1",
+      "status": "N/A",
+      "target": "設定を読める人（FR10.1。変更の画面は u4-accounts-admin）"
+    },
+    {
+      "id": "BR9.2",
+      "status": "N/A",
+      "target": "設定の値の範囲（AC6.4.3 が確かめる保存の操作は u4-accounts-admin。U2 は決まりだけを置く）"
+    },
+    {
+      "id": "BR9.3",
+      "status": "N/A",
+      "target": "設定の行がないときの初期値（最初のデプロイで動くための決まり。受け入れ基準なし）"
+    },
+    {
+      "id": "BR8.11",
+      "status": "N/A",
+      "target": "知らせの順番が入れ替わったときの索引の組み立て（contract-summary 2.5。レビュー R-02。受け入れ基準なし）"
+    }
+  ]
+}

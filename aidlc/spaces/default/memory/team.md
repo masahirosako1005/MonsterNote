@@ -80,3 +80,4 @@
 ## Corrections
 
 <!-- Self-learning loop appends here. -->
+- per-unitのレビュアー（aidlc-architecture-reviewer-agent）をTaskで起動する直前に、<record>/.aidlc-engine/reviewer-dispatch.jsonを書く（stage-protocol-reviewer-unit.mdの必須手順）。これを忘れると reviewer-scope フックの強制が効かず、aidlc --doctor に毎回 warning が溜まる（このセッションで23回検出） (learned 2026-11-24) <!-- cid:261122-monsternote-task-app:code-generation:068406b4b516dffe6a208b9294e18a49ca7322be1c13f3b2b24ec617f7009d70 -->

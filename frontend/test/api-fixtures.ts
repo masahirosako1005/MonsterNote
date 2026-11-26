@@ -39,7 +39,23 @@ export function sessionHandlers(role: 'hunter' | 'requester', displayName = '利
       });
     }),
     http.delete(`${API}/v1/session`, () => new HttpResponse(null, { status: 204 })),
+    // U4: ログイン直後の初回の手続きの確認（BR11.7）。既定ではすべて済んでいる扱いにする
+    http.get(`${API}/v1/me`, () =>
+      HttpResponse.json({
+        accountId: `${role}-a`,
+        role,
+        displayName,
+        mustChangePassword: false,
+        consentRequired: false,
+        hunterNumberRequired: false,
+      }),
+    ),
   ];
+}
+
+/** U2（新規）: 対象地域（GET /v1/report-settings）。既定は日本のおおよその範囲 */
+export function reportSettingsHandler(area = { north: 46, south: 20, east: 154, west: 122 }) {
+  return http.get(`${API}/v1/report-settings`, () => HttpResponse.json({ targetArea: area }));
 }
 
 export function listItem(i: number, status = 'checking') {

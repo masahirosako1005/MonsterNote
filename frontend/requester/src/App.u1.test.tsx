@@ -54,6 +54,9 @@ describe('RequesterApp', () => {
               },
         ),
       ),
+      http.get(`${API}/v1/duplicates/report-1`, () =>
+        HttpResponse.json({ reportId: 'report-1', matches: [] }),
+      ),
       http.put(`${API}/v1/reviews/report-1/decision`, () => {
         status = 'approved';
         return HttpResponse.json({ reportId: 'report-1', status: 'approved' });
@@ -117,6 +120,9 @@ describe('RequesterApp', () => {
       http.get(`${API}/v1/reviews/report-1`, () =>
         HttpResponse.json({ code: 'REVIEW_NOT_READY', message: 'まだ' }, { status: 404 }),
       ),
+      http.get(`${API}/v1/duplicates/report-1`, () =>
+        HttpResponse.json({ reportId: 'report-1', matches: [] }),
+      ),
       http.put(`${API}/v1/reviews/report-1/decision`, () =>
         HttpResponse.json(
           {
@@ -128,7 +134,8 @@ describe('RequesterApp', () => {
       ),
     );
     // 保存した出し直し用の値でログインを続け、詳細を直接開く
-    window.localStorage.setItem('monsternote.requester.refreshToken', 'refresh-1');
+    // U4: RequesterAppはrequester・adminの両方を許すため、保存場所のキーも両方をまとめた形になる
+    window.localStorage.setItem('monsternote.admin+requester.refreshToken', 'refresh-1');
     renderApp('/reports/report-1');
     expect(await screen.findByTestId('status-checking')).toBeInTheDocument();
     await userEvent.click(await screen.findByTestId('approve-button'));
@@ -139,6 +146,7 @@ describe('RequesterApp', () => {
     server.use(...sessionHandlers('hunter'));
     renderApp();
     await login();
-    expect(await screen.findByRole('alert')).toHaveTextContent('依頼元の方だけ');
+    // U4: RequesterAppはrequester・adminの両方を許すため、両方を挙げたメッセージになる
+    expect(await screen.findByRole('alert')).toHaveTextContent('依頼元・管理者の方だけ');
   });
 });

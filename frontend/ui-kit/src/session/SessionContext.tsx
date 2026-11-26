@@ -20,7 +20,7 @@ export function SessionProvider({
   children,
 }: {
   baseUrl: string;
-  requiredRole: Role;
+  requiredRole: Role | Role[];
   children: ReactNode;
 }) {
   const [account, setAccount] = useState<SessionAccount>();

@@ -9,7 +9,7 @@ import {
   CognitoIdentityProviderClient,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, TransactWriteCommand } from '@aws-sdk/lib-dynamodb';
 import {
   createAccount,
   generateTemporaryPassword,
@@ -31,6 +31,7 @@ function deps() {
       ddb: DynamoDBDocumentClient.from(new DynamoDBClient({ region, credentials })),
       userPoolId: 'pool-1',
       accountsTable: 'Accounts',
+      adminCounterTable: 'AdminCounter',
       now: () => new Date('2026-11-23T05:00:00.000Z'),
       out: (line: string) => lines.push(line),
       password: () => 'abcd1234efgh',
@@ -46,23 +47,27 @@ beforeEach(() => {
   });
   cognitoMock.on(AdminSetUserPasswordCommand).resolves({});
   cognitoMock.on(AdminAddUserToGroupCommand).resolves({});
-  ddbMock.on(PutCommand).resolves({});
+  ddbMock.on(TransactWriteCommand).resolves({});
 });
 
 describe('validateInput', () => {
-  it('ハンターは従事者番号が必須、依頼元は所属が必須、admin は U1 では作らない', () => {
+  it('ハンターは従事者番号が必須、依頼元は所属が必須、admin はU4でこのスクリプトから作れる（BR11.11）', () => {
     expect(
       validateInput({ role: 'hunter', loginId: 'hunter01', displayName: 'A' }).join(),
     ).toContain('--hunter-number');
     expect(
       validateInput({ role: 'requester', loginId: 'req01', displayName: 'B' }).join(),
     ).toContain('--organization');
-    expect(validateInput({ role: 'admin', loginId: 'adm01', displayName: 'C' }).join()).toContain(
-      'admin',
-    );
+    expect(validateInput({ role: 'admin', loginId: 'adm01', displayName: 'C' })).toEqual([]);
     expect(
       validateInput({ role: 'hunter', loginId: 'hunter01', displayName: 'A', hunterNumber: '123' }),
     ).toEqual([]);
+  });
+
+  it('知らない役割は拒む', () => {
+    expect(validateInput({ role: 'unknown', loginId: 'x01', displayName: 'A' }).join()).toContain(
+      '--role',
+    );
   });
 
   it('ID は英数字 3〜32 文字、表示名は 1〜50 文字、従事者番号は数字 1〜20 桁', () => {
@@ -134,7 +139,9 @@ describe('createAccount', () => {
     expect(cognitoMock.commandCalls(AdminAddUserToGroupCommand)[0]?.args[0].input.GroupName).toBe(
       'hunter',
     );
-    expect(ddbMock.commandCalls(PutCommand)[0]?.args[0].input.Item).toEqual({
+    const items = ddbMock.commandCalls(TransactWriteCommand)[0]?.args[0].input.TransactItems;
+    expect(items).toHaveLength(1); // ハンターなのでAdminCounterは触らない
+    expect(items?.[0]?.Put?.Item).toEqual({
       accountId: 'sub-123',
       loginId: 'hunter01',
       displayName: 'ハンター A',
@@ -144,6 +151,7 @@ describe('createAccount', () => {
       consentedAt: '2026-11-23T05:00:00.000Z',
       hunterNumber: '123',
       createdAt: '2026-11-23T05:00:00.000Z',
+      listPartition: 'ALL',
     });
     expect(lines.filter((l) => l.includes('abcd1234efgh'))).toHaveLength(1);
   });
@@ -156,24 +164,39 @@ describe('createAccount', () => {
       displayName: '市の担当',
       organization: 'municipality',
     });
-    const item = ddbMock.commandCalls(PutCommand)[0]?.args[0].input.Item;
+    const item =
+      ddbMock.commandCalls(TransactWriteCommand)[0]?.args[0].input.TransactItems?.[0]?.Put?.Item;
     expect(item).toMatchObject({ role: 'requester', organization: 'municipality' });
     expect(item).not.toHaveProperty('consentedAt');
     expect(item).not.toHaveProperty('hunterNumber');
   });
 
+  it('管理者: Account作成とAdminCounterの+1を1つのトランザクションで行う（BR11.11）', async () => {
+    const { deps: d } = deps();
+    await createAccount(d, { role: 'admin', loginId: 'admin02', displayName: '管理者2' });
+    const items = ddbMock.commandCalls(TransactWriteCommand)[0]?.args[0].input.TransactItems;
+    expect(items).toHaveLength(2);
+    expect(items?.[1]?.Update).toMatchObject({
+      TableName: 'AdminCounter',
+      Key: { counterKey: 'admin-counter' },
+    });
+    expect(items?.[1]?.Update?.UpdateExpression).toContain(
+      'if_not_exists(activeAdminCount, :zero)',
+    );
+  });
+
   it('決まりに合わなければ、何も作らずにエラーで止まる', async () => {
     const { deps: d } = deps();
     await expect(
-      createAccount(d, { role: 'admin', loginId: 'adm01', displayName: 'C' }),
+      createAccount(d, { role: 'hunter', loginId: 'hunter01', displayName: 'A' }),
     ).rejects.toThrow();
     expect(cognitoMock.commandCalls(AdminCreateUserCommand)).toHaveLength(0);
-    expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
+    expect(ddbMock.commandCalls(TransactWriteCommand)).toHaveLength(0);
   });
 
   it('表の書き込みに失敗したら、作った Cognito のユーザーを消して止まる', async () => {
     const { deps: d, lines } = deps();
-    ddbMock.on(PutCommand).rejects(new Error('dynamodb down'));
+    ddbMock.on(TransactWriteCommand).rejects(new Error('dynamodb down'));
     cognitoMock.on(AdminDeleteUserCommand).resolves({});
     await expect(
       createAccount(d, {

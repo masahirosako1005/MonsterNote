@@ -1,6 +1,12 @@
-# MonsterNote の部品の間の知らせ（共通の約束の置き場。contract-summary C12・C13・C16 2.4）。
+# MonsterNote の部品の間の知らせ（共通の約束の置き場。contract-summary C12〜C14・C16 2.4）。
 # 届け方: EventBridge の独自のバス monsternote-dev。source は monsternote.<部品の名前>、detail-type は知らせの種類、
 # detail は EventEnvelope（reliability-design）。受け手は eventId で 2 回目を無視する。
+# U2 での変更: report.saved・review.status-changed の受け手に DuplicateDetection を足した（ADR-003）。
+# duplicate.suspected（C14）を新規に足した。manualEntry は U2 で実際に true になりうる（BR2.12）。
+# U4 での変更: audit.recorded（C15。新規）を足した。送り手は各部品（Accounts・Reporting・Review・
+# ReportCatalog・DuplicateDetection・Settings）、受け手は AuditLog だけ（detail-type だけで絞り、送り手は
+# 区別しない）。D-6: detail に actorName・outcome を足す（actorAccountId・occurredAt は EventEnvelope が
+# すでに持つため足さない）。
 asyncapi: 2.6.0
 info:
   title: MonsterNote events
@@ -8,7 +14,9 @@ info:
 defaultContentType: application/json
 channels:
   report.saved:
-    description: C12 報告が保存された（送り手 Reporting = source monsternote.reporting。受け手 Review・ReportCatalog）
+    description: >
+      C12 報告が保存された（送り手 Reporting = source monsternote.reporting）。
+      受け手は Review・ReportCatalog（U1）に加え、U2 で DuplicateDetection（保存後の重複の再判定。ADR-003）
     subscribe:
       message:
         payload:
@@ -40,13 +48,23 @@ channels:
                       properties:
                         lat: { type: number }
                         lng: { type: number }
-                    placeName: { type: string, description: U1 は空 }
-                    manualEntry: { type: boolean, description: U1 は false }
+                    placeName: { type: string, description: U1・U2 とも空（D-2） }
+                    manualEntry:
+                      {
+                        type: boolean,
+                        description: 日時か場所のどちらかが手入力なら true（U2 で実際に使う。BR2.12）,
+                      }
                     submittedAt: { type: string, format: date-time }
                     bodyPhotoId: { type: string }
-                    photoHash: { type: string, description: U2 で使う }
+                    photoHash:
+                      {
+                        type: string,
+                        description: Should（写真の重複）。U2 では値を入れない（D-3）,
+                      }
   review.status-changed:
-    description: C13 報告の状態が変わった（送り手 Review = source monsternote.review。受け手 ReportCatalog）
+    description: >
+      C13 報告の状態が変わった（送り手 Review = source monsternote.review）。
+      受け手は ReportCatalog（U1）に加え、U2 で DuplicateDetection（却下・取り消しで索引の active を出し入れ。BR8.7・BR8.11）
     subscribe:
       message:
         payload:
@@ -65,6 +83,73 @@ channels:
                       { type: string, enum: [duplicate, insufficient-photo, out-of-scope, other] }
                     undone: { type: boolean }
                     changedAt: { type: string, format: date-time }
+  duplicate.suspected:
+    description: >
+      C14（U2・新規）。重複の疑いが付いた（送り手 DuplicateDetection = source monsternote.duplicatedetection）。
+      保存のあとの判定（report.saved を受けたとき）でだけ送る。送信の前の問い合わせ（C9）では、まだ reportId が
+      ないため送らない。疑いの組（報告 A と B）ごとに、reportId が A のものと B のものの 2 つを送る（BR8.4・BR8.6）
+    subscribe:
+      message:
+        payload:
+          allOf:
+            - $ref: '#/components/schemas/EventEnvelope'
+            - type: object
+              properties:
+                data:
+                  type: object
+                  required: [reportId, matchedReportId, kind]
+                  properties:
+                    reportId:
+                      {
+                        type: string,
+                        description: 印を付ける報告（この知らせの受け手から見た自分）,
+                      }
+                    matchedReportId: { type: string, description: 疑いの相手の報告 }
+                    kind:
+                      {
+                        type: string,
+                        enum: [place-time, photo, moon-ring],
+                        description: U2 は place-time だけ（Q1）,
+                      }
+  audit.recorded:
+    description: >
+      C15（U4・新規）。操作の記録（送り手は各部品 = source monsternote.<部品の名前>）。
+      受け手は AuditLog だけ。同じ eventId を 2 回受けても 1 件しか作らない（BR12.2）。
+      report.submitted・review.approved・review.rejected・review.undone・duplicate.suspected・
+      account.created・account.password-reset・account.disabled・account.enabled・settings.updated・
+      data.deleted のいずれかの操作ごとに 1 回送る（BR12.5）
+    subscribe:
+      message:
+        payload:
+          allOf:
+            - $ref: '#/components/schemas/EventEnvelope'
+            - type: object
+              properties:
+                data:
+                  type: object
+                  required: [action, targetType, outcome]
+                  properties:
+                    actorAccountId:
+                      {
+                        type: string,
+                        description: EventEnvelope.actorAccountId と同じ値（受け手は画面に出さない。BR12.3）,
+                      }
+                    actorName:
+                      {
+                        type: string,
+                        description: D-6（新規）。操作した人の表示名（無ければ役割の呼び名）,
+                      }
+                    action: { type: string, example: review.approved }
+                    targetType: { type: string, enum: [report, account, settings, data] }
+                    targetId: { type: string }
+                    outcome: { type: string, enum: [succeeded, failed], description: D-6（新規） }
+                    detail:
+                      {
+                        type: object,
+                        description:
+                          件数など、ID 以外に必要な最小限の値だけ（BR12.3。パスワード・写真・
+                          報告の中身・却下の理由の文は入れない）,
+                      }
 components:
   schemas:
     EventEnvelope:

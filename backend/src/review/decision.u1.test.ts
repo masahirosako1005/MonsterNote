@@ -82,6 +82,8 @@ describe('PUT /v1/reviews/{reportId}/decision', () => {
       status: 'approved',
       decidedByName: '表示名-requester-a',
       decidedAt: '2026-11-23T04:00:00.000Z',
+      // U3 で undoUntil が本番になった（BR3.9）
+      undoUntil: '2026-11-23T04:00:10.000Z',
     });
     const update = ddbMock.commandCalls(UpdateCommand)[0]?.args[0].input;
     expect(update?.ConditionExpression).toBe('#status = :checking');
@@ -170,9 +172,16 @@ describe('PUT /v1/reviews/{reportId}/decision', () => {
     expect(logLines.some((l) => l.includes('EVENT_PUBLISH_FAILED'))).toBe(true);
   });
 
-  it('U1 では承認（approved）だけを受け付ける（それ以外は 400）', async () => {
-    const res = await decide(requesterClaims(), { decision: 'rejected' });
+  it('decision が approved・rejected 以外なら 400', async () => {
+    const res = await decide(requesterClaims(), { decision: 'pending' });
     expect(res.statusCode).toBe(400);
+  });
+
+  // U3 で却下（rejected）も受け付けるようになった（BR3.8）。理由の確認は validate-reject.u3.test.ts・
+  // decision.u3.test.ts でまとめて試す
+  it('U3: rejected は理由が必須（理由がなければ 422）', async () => {
+    const res = await decide(requesterClaims(), { decision: 'rejected' });
+    expect(res.statusCode).toBe(422);
   });
 });
 

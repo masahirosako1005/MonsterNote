@@ -8,10 +8,15 @@ import {
   QueryCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
+import { InvokeCommand, LambdaClient, type InvokeCommandOutput } from '@aws-sdk/client-lambda';
 import { requireEnv } from '../shared/env';
 import { apiEvent, busEvent, hunterClaims, requesterClaims } from '../../test/helpers/events';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
+const lambdaMock = mockClient(LambdaClient);
+
+const payload = (o: unknown) =>
+  new TextEncoder().encode(JSON.stringify(o)) as unknown as InvokeCommandOutput['Payload'];
 
 const ENV = {
   AWS_REGION: 'ap-northeast-1',
@@ -19,6 +24,8 @@ const ENV = {
   AWS_SECRET_ACCESS_KEY: 'test',
   ACCOUNTS_TABLE: 'Accounts',
   USER_POOL_CLIENT_ID: 'client-1',
+  USER_POOL_ID: 'pool-1',
+  ADMIN_COUNTER_TABLE: 'AdminCounter',
   PHOTOS_TABLE: 'Photos',
   REPORTS_TABLE: 'Reports',
   SUBMISSION_KEYS_TABLE: 'SubmissionKeys',
@@ -28,10 +35,21 @@ const ENV = {
   REVIEW_DECISIONS_TABLE: 'ReviewDecisions',
   REPORT_LIST_ITEMS_TABLE: 'ReportListItems',
   PROCESSED_EVENTS_TABLE: 'ProcessedEvents',
+  DETECTION_RESULTS_TABLE: 'DetectionResults',
+  DETECTION_RATE_LIMITS_TABLE: 'DetectionRateLimits',
+  REPORT_FOOTPRINTS_TABLE: 'ReportFootprints',
+  DUPLICATE_SUSPICIONS_TABLE: 'DuplicateSuspicions',
+  SETTINGS_TABLE: 'Settings',
+  SETTINGS_FUNCTION_NAME: 'settings-fn',
+  DUPLICATE_DETECTION_FUNCTION_NAME: 'duplicate-detection-fn',
 };
 
 beforeEach(() => {
   ddbMock.reset();
+  lambdaMock.reset();
+  // U4: mustChangePasswordゲート（内部の呼び出し）の既定の応答。個別のテストでAccounts自身への
+  // 問い合わせが要らない限り、仮のパスワードではない扱いにする
+  lambdaMock.on(InvokeCommand).resolves({ Payload: payload({ mustChangePassword: false }) });
   for (const [k, v] of Object.entries(ENV)) vi.stubEnv(k, v);
   vi.resetModules();
 });

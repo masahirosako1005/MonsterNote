@@ -1,0 +1,403 @@
+{
+  "stage": "code-generation",
+  "unit": "u4-accounts-admin",
+  "version": 1,
+  "writes": [
+    {
+      "path": "backend/src/accounts/admin-counter.ts"
+    },
+    {
+      "path": "backend/src/accounts/admin-counter.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/caller-status.ts"
+    },
+    {
+      "path": "backend/src/accounts/caller-status.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/change-password.ts"
+    },
+    {
+      "path": "backend/src/accounts/change-password.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/consent.ts"
+    },
+    {
+      "path": "backend/src/accounts/consent.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/create-account.ts"
+    },
+    {
+      "path": "backend/src/accounts/create-account.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/get-me.ts"
+    },
+    {
+      "path": "backend/src/accounts/get-me.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/hunter-number.ts"
+    },
+    {
+      "path": "backend/src/accounts/hunter-number.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/list-accounts.ts"
+    },
+    {
+      "path": "backend/src/accounts/list-accounts.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/password-reset.ts"
+    },
+    {
+      "path": "backend/src/accounts/password-reset.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/repository.ts"
+    },
+    {
+      "path": "backend/src/accounts/repository.u4.test.ts"
+    },
+    {
+      "path": "backend/src/accounts/set-status.ts"
+    },
+    {
+      "path": "backend/src/accounts/set-status.u4.test.ts"
+    },
+    {
+      "path": "backend/src/audit-log/list-entries.ts"
+    },
+    {
+      "path": "backend/src/audit-log/list-entries.u4.test.ts"
+    },
+    {
+      "path": "backend/src/audit-log/on-recorded.ts"
+    },
+    {
+      "path": "backend/src/audit-log/on-recorded.u4.test.ts"
+    },
+    {
+      "path": "backend/src/audit-log/repository.ts"
+    },
+    {
+      "path": "backend/src/audit-log/repository.u4.test.ts"
+    },
+    {
+      "path": "backend/src/catalog/delete-all.ts"
+    },
+    {
+      "path": "backend/src/catalog/delete-all.u4.test.ts"
+    },
+    {
+      "path": "backend/src/catalog/list.ts"
+    },
+    {
+      "path": "backend/src/catalog/list.u1.test.ts"
+    },
+    {
+      "path": "backend/src/duplicate-detection/delete-all.ts"
+    },
+    {
+      "path": "backend/src/duplicate-detection/delete-all.u4.test.ts"
+    },
+    {
+      "path": "backend/src/duplicate-detection/on-saved.ts"
+    },
+    {
+      "path": "backend/src/duplicate-detection/on-saved.u2.test.ts"
+    },
+    {
+      "path": "backend/src/handlers/accounts.ts"
+    },
+    {
+      "path": "backend/src/handlers/audit-log.ts"
+    },
+    {
+      "path": "backend/src/handlers/catalog.ts"
+    },
+    {
+      "path": "backend/src/handlers/catalog.u3.test.ts"
+    },
+    {
+      "path": "backend/src/handlers/duplicate-detection.ts"
+    },
+    {
+      "path": "backend/src/handlers/duplicate-detection.u2.test.ts"
+    },
+    {
+      "path": "backend/src/handlers/handlers.u1.test.ts"
+    },
+    {
+      "path": "backend/src/handlers/handlers.u4.test.ts"
+    },
+    {
+      "path": "backend/src/handlers/reporting.ts"
+    },
+    {
+      "path": "backend/src/handlers/reporting.u2.test.ts"
+    },
+    {
+      "path": "backend/src/handlers/review.ts"
+    },
+    {
+      "path": "backend/src/handlers/review.u3.test.ts"
+    },
+    {
+      "path": "backend/src/handlers/settings.ts"
+    },
+    {
+      "path": "backend/src/handlers/settings.u2.test.ts"
+    },
+    {
+      "path": "backend/src/reporting/delete-all.ts"
+    },
+    {
+      "path": "backend/src/reporting/delete-all.u4.test.ts"
+    },
+    {
+      "path": "backend/src/reporting/submit.ts"
+    },
+    {
+      "path": "backend/src/reporting/submit.u1.test.ts"
+    },
+    {
+      "path": "backend/src/review/decision.ts"
+    },
+    {
+      "path": "backend/src/review/decision.u3.test.ts"
+    },
+    {
+      "path": "backend/src/review/delete-all.ts"
+    },
+    {
+      "path": "backend/src/review/delete-all.u4.test.ts"
+    },
+    {
+      "path": "backend/src/review/undo.ts"
+    },
+    {
+      "path": "backend/src/settings/get-settings.ts"
+    },
+    {
+      "path": "backend/src/settings/get-settings.u4.test.ts"
+    },
+    {
+      "path": "backend/src/settings/update-settings.ts"
+    },
+    {
+      "path": "backend/src/settings/update-settings.u4.test.ts"
+    },
+    {
+      "path": "backend/src/shared/batch-delete.ts"
+    },
+    {
+      "path": "backend/src/shared/batch-delete.u4.test.ts"
+    },
+    {
+      "path": "backend/src/shared/errors.ts"
+    },
+    {
+      "path": "backend/src/shared/events.ts"
+    },
+    {
+      "path": "backend/src/shared/events.u4.test.ts"
+    },
+    {
+      "path": "backend/src/shared/http.ts"
+    },
+    {
+      "path": "backend/src/shared/logger.ts"
+    },
+    {
+      "path": "backend/src/shared/password-gate-client.ts"
+    },
+    {
+      "path": "backend/src/shared/password-gate-client.u4.test.ts"
+    },
+    {
+      "path": "backend/src/shared/require-password-changed.ts"
+    },
+    {
+      "path": "backend/src/shared/require-password-changed.u4.test.ts"
+    },
+    {
+      "path": "contracts/asyncapi.yaml"
+    },
+    {
+      "path": "contracts/openapi.yaml"
+    },
+    {
+      "path": "e2e/mock-api.ts"
+    },
+    {
+      "path": "e2e/skeleton.u1.spec.ts"
+    },
+    {
+      "path": "e2e/u4-accounts-admin.spec.ts"
+    },
+    {
+      "path": "frontend/hunter/src/App.tsx"
+    },
+    {
+      "path": "frontend/hunter/src/pages/LoginPage.tsx"
+    },
+    {
+      "path": "frontend/hunter/src/pages/ProcedurePage.tsx"
+    },
+    {
+      "path": "frontend/requester/src/App.tsx"
+    },
+    {
+      "path": "frontend/requester/src/App.u1.test.tsx"
+    },
+    {
+      "path": "frontend/requester/src/admin-api.ts"
+    },
+    {
+      "path": "frontend/requester/src/pages/DetailPage.u3.test.tsx"
+    },
+    {
+      "path": "frontend/requester/src/pages/LoginPage.tsx"
+    },
+    {
+      "path": "frontend/requester/src/pages/ProcedurePage.tsx"
+    },
+    {
+      "path": "frontend/requester/src/pages/RequesterShell.tsx"
+    },
+    {
+      "path": "frontend/requester/src/pages/admin/AccountCreatePage.tsx"
+    },
+    {
+      "path": "frontend/requester/src/pages/admin/AccountDetailPage.tsx"
+    },
+    {
+      "path": "frontend/requester/src/pages/admin/AccountsPage.tsx"
+    },
+    {
+      "path": "frontend/requester/src/pages/admin/AuditLogPage.tsx"
+    },
+    {
+      "path": "frontend/requester/src/pages/admin/DeleteAllPage.tsx"
+    },
+    {
+      "path": "frontend/requester/src/pages/admin/SettingsPage.tsx"
+    },
+    {
+      "path": "frontend/test/api-fixtures.ts"
+    },
+    {
+      "path": "frontend/ui-kit/src/AppFrame.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/api/me.ts"
+    },
+    {
+      "path": "frontend/ui-kit/src/api/me.u4.test.ts"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/AccountForm.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/AccountForm.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/AccountTable.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/AccountTable.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/AuditTable.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/AuditTable.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/ConsentPanel.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/ConsentPanel.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/DeleteConfirm.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/DeleteConfirm.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/DeleteProgress.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/DeleteProgress.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/HunterNumberForm.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/HunterNumberForm.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/PasswordChangeForm.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/PasswordChangeForm.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/ProcedureFlow.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/ProcedureFlow.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/SettingsForm.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/SettingsForm.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/TempPasswordPanel.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/components/TempPasswordPanel.u4.test.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/labels.ts"
+    },
+    {
+      "path": "frontend/ui-kit/src/session/SessionContext.tsx"
+    },
+    {
+      "path": "frontend/ui-kit/src/session/session.ts"
+    },
+    {
+      "path": "infra/lib/api-stack.ts"
+    },
+    {
+      "path": "infra/lib/data-stack.ts"
+    },
+    {
+      "path": "infra/test/stacks.u1.test.ts"
+    },
+    {
+      "path": "infra/test/stacks.u2.test.ts"
+    },
+    {
+      "path": "infra/test/stacks.u3.test.ts"
+    },
+    {
+      "path": "infra/test/stacks.u4.test.ts"
+    },
+    {
+      "path": "scripts/create-account.ts"
+    },
+    {
+      "path": "scripts/create-account.u1.test.ts"
+    }
+  ]
+}

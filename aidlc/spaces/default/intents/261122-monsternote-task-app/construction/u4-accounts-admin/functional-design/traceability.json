@@ -1,0 +1,231 @@
+{
+  "stage": "functional-design",
+  "unit": "u4-accounts-admin",
+  "upstream_ids": [
+    "AC1.2.1",
+    "AC1.2.2",
+    "AC1.2.3",
+    "AC1.3.1",
+    "AC1.3.2",
+    "AC1.3.3",
+    "AC1.4.1",
+    "AC1.4.2",
+    "AC1.4.3",
+    "AC1.5.1",
+    "AC1.5.2",
+    "AC1.5.3",
+    "AC6.1.1",
+    "AC6.1.2",
+    "AC6.1.3",
+    "AC6.1.4",
+    "AC6.2.1",
+    "AC6.2.2",
+    "AC6.3.1",
+    "AC6.3.2",
+    "AC6.3.3",
+    "AC6.3.4",
+    "AC6.4.1",
+    "AC6.4.2",
+    "AC6.4.3",
+    "AC6.5.1",
+    "AC6.5.2",
+    "AC6.5.3",
+    "AC6.6.1",
+    "AC6.6.2",
+    "AC6.6.3"
+  ],
+  "coverage": [
+    {
+      "id": "AC1.2.1",
+      "status": "OK",
+      "target": "BR11.4"
+    },
+    {
+      "id": "AC1.2.2",
+      "status": "OK",
+      "target": "BR11.4"
+    },
+    {
+      "id": "AC1.2.3",
+      "status": "OK",
+      "target": "BR11.4"
+    },
+    {
+      "id": "AC1.3.1",
+      "status": "OK",
+      "target": "BR11.5"
+    },
+    {
+      "id": "AC1.3.2",
+      "status": "OK",
+      "target": "BR11.5"
+    },
+    {
+      "id": "AC1.3.3",
+      "status": "OK",
+      "target": "BR11.5"
+    },
+    {
+      "id": "AC1.4.1",
+      "status": "OK",
+      "target": "BR11.6"
+    },
+    {
+      "id": "AC1.4.2",
+      "status": "OK",
+      "target": "BR11.6"
+    },
+    {
+      "id": "AC1.4.3",
+      "status": "OK",
+      "target": "BR11.6"
+    },
+    {
+      "id": "AC1.5.1",
+      "status": "OK",
+      "target": "BR11.8"
+    },
+    {
+      "id": "AC1.5.2",
+      "status": "OK",
+      "target": "BR11.8"
+    },
+    {
+      "id": "AC1.5.3",
+      "status": "OK",
+      "target": "BR11.8"
+    },
+    {
+      "id": "AC6.1.1",
+      "status": "OK",
+      "target": "BR11.3"
+    },
+    {
+      "id": "AC6.1.2",
+      "status": "OK",
+      "target": "BR11.2"
+    },
+    {
+      "id": "AC6.1.3",
+      "status": "OK",
+      "target": "BR11.2"
+    },
+    {
+      "id": "AC6.1.4",
+      "status": "OK",
+      "target": "BR11.1"
+    },
+    {
+      "id": "AC6.2.1",
+      "status": "OK",
+      "target": "BR11.3"
+    },
+    {
+      "id": "AC6.2.2",
+      "status": "OK",
+      "target": "BR11.4"
+    },
+    {
+      "id": "AC6.3.1",
+      "status": "OK",
+      "target": "BR11.9"
+    },
+    {
+      "id": "AC6.3.2",
+      "status": "OK",
+      "target": "BR11.8"
+    },
+    {
+      "id": "AC6.3.3",
+      "status": "OK",
+      "target": "BR11.10"
+    },
+    {
+      "id": "AC6.3.4",
+      "status": "OK",
+      "target": "BR11.9"
+    },
+    {
+      "id": "AC6.4.1",
+      "status": "OK",
+      "target": "BR9.4"
+    },
+    {
+      "id": "AC6.4.2",
+      "status": "OK",
+      "target": "BR9.2"
+    },
+    {
+      "id": "AC6.4.3",
+      "status": "OK",
+      "target": "BR9.2"
+    },
+    {
+      "id": "AC6.5.1",
+      "status": "OK",
+      "target": "BR13.2"
+    },
+    {
+      "id": "AC6.5.2",
+      "status": "OK",
+      "target": "BR13.1"
+    },
+    {
+      "id": "AC6.5.3",
+      "status": "OK",
+      "target": "BR13.2"
+    },
+    {
+      "id": "AC6.6.1",
+      "status": "OK",
+      "target": "BR12.3"
+    },
+    {
+      "id": "AC6.6.2",
+      "status": "OK",
+      "target": "BR12.5"
+    },
+    {
+      "id": "AC6.6.3",
+      "status": "OK",
+      "target": "BR12.1"
+    }
+  ],
+  "reverse": [
+    {
+      "id": "BR11.7",
+      "status": "N/A",
+      "target": "初回の手続きの順番（約束 C1 の 3 つの印の出し分け。個々の手続きは AC1.2.x〜AC1.4.x が確かめるが、順番そのものを確かめる基準はない）"
+    },
+    {
+      "id": "BR11.11",
+      "status": "N/A",
+      "target": "最初の管理者をスクリプトで作る（Q1。上流の設計の抜けを埋めたもので、受け入れ基準にない）"
+    },
+    {
+      "id": "BR12.2",
+      "status": "N/A",
+      "target": "同じ知らせを 2 回受けても 1 件だけ作る（知らせの再送への備え。受け入れ基準なし）"
+    },
+    {
+      "id": "BR12.4",
+      "status": "N/A",
+      "target": "操作の記録を変えない・消さない（Q3。NFR11 と NFR14 の折り合いで、受け入れ基準にない）"
+    },
+    {
+      "id": "BR13.3",
+      "status": "N/A",
+      "target": "削除できるのは管理者だけ。アカウントと操作の記録は消さない（NFR11・Q3）"
+    },
+    {
+      "id": "BR13.4",
+      "status": "N/A",
+      "target": "削除した件数を操作の記録に残す（Q3。AC6.6.x は承認と再設定だけを確かめている）"
+    },
+    {
+      "id": "BR11.9",
+      "status": "N/A",
+      "target": "有効な管理者の数を条件にした書き換え（レビュー R-02 の直し。AC6.3.1・AC6.3.4 は無効化と有効化だけを確かめ、同時の操作は確かめていない）"
+    }
+  ]
+}
