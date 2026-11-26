@@ -160,8 +160,11 @@ describe.skipIf(!javaAvailable)('U3 の結合の流れ（DynamoDB Local）', () 
     );
 
   beforeAll(async () => {
+    // ポートごとに専用のディレクトリにする（skeleton-flow.u1.test.ts と同じパスを共有すると、
+    // JAR が未ダウンロードの環境〈CI の初回実行〉で複数の Vitest ワーカーが同時にダウンロード・
+    // 展開を試みて競合し、DynamoDB Local が起動できず ECONNREFUSED になる。CI で実際に発生して判明）
     const installPath = fileURLToPath(
-      new URL('../../../node_modules/.cache/dynamodb-local', import.meta.url),
+      new URL(`../../../node_modules/.cache/dynamodb-local-${PORT}`, import.meta.url),
     );
     mkdirSync(installPath, { recursive: true });
     DynamoDbLocal.configureInstaller({ installPath });
