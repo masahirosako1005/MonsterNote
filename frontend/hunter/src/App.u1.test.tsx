@@ -54,12 +54,20 @@ async function goToSubmit() {
   await userEvent.upload(await screen.findByTestId('photo-input'), file);
   // U2: アップロードの完了で判別の結果（またはできなかった旨）を見せてから次へ進む（BR6.2〜BR6.4）
   await userEvent.click(await screen.findByTestId('photo-next'));
-  // 種類と雌雄（選ぶまで次へは押せない）
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  const tailFile = new File(['x'], 'tail.jpg', { type: 'image/jpeg' });
+  await userEvent.upload(await screen.findByTestId('photo-input'), tailFile);
+  await userEvent.click(await screen.findByTestId('photo-tail-next'));
+  // 種類・雌雄・成獣／幼獣・捕獲の方法（すべて選ぶまで次へは押せない）
   const next = await screen.findByTestId('choice-next');
   expect(next).toBeDisabled();
   await userEvent.click(screen.getByTestId('species-boar'));
   expect(next).toBeDisabled();
   await userEvent.click(screen.getByTestId('sex-male'));
+  expect(next).toBeDisabled();
+  await userEvent.click(screen.getByTestId('age-class-adult'));
+  expect(next).toBeDisabled();
+  await userEvent.click(screen.getByTestId('capture-method-trap'));
   expect(next).toBeEnabled();
   await userEvent.click(next);
   // U2: 位置は地図（MapPicker）で指す

@@ -11,6 +11,7 @@ import { errors, type ErrorDetail } from '../shared/errors';
 import {
   createEnvelope,
   EventPublishError,
+  publishAuditRecorded,
   publishEvent,
   withTimeout,
   type PublishOptions,
@@ -277,6 +278,33 @@ export function createSubmitRoutes(deps: SubmitDeps): Record<string, RouteHandle
       throw errors.internal('送れませんでした。もう一度お試しください');
     }
     await deps.repo.markReportEventSent(report.reportId);
+    // U4（BR12.5）: 操作の記録。eventId を reportId から決めて、送り直し（resend）でも
+    // AuditLog 側の eventId 条件付き書き込み（BR12.2）が自然に二重登録を防ぐようにする
+    await publishAuditRecorded(
+      deps.eventBridge,
+      deps.busName,
+      'Reporting',
+      {
+        action: 'report.submitted',
+        targetType: 'report',
+        targetId: report.reportId,
+        outcome: 'succeeded',
+        actorAccountId: report.hunterAccountId,
+        actorName: hunterName,
+      },
+      {
+        actorAccountId: report.hunterAccountId,
+        now,
+        newId: () => `report.submitted:${report.reportId}`,
+        publishOptions: deps.publishOptions,
+        onError: (err, eventId) =>
+          deps.logger.error('audit.recorded を送れなかった', {
+            requestId,
+            errorCode: 'EVENT_PUBLISH_FAILED',
+            eventId,
+          }),
+      },
+    );
   }
 
   async function eligibleHunter(caller: Caller) {

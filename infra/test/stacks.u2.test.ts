@@ -103,44 +103,34 @@ describe('Data（U2 で足す 5 つの表・S3 のライフサイクル）', () 
 });
 
 describe('Api（U2 で足す関数・道・知らせ）', () => {
-  it('Reporting の時間切れは 9 秒（U1 の 8 秒から引き上げ。performance-design §2）', () => {
+  it('Reporting の時間切れは 9 秒以上（U1 の 8 秒から引き上げ。performance-design §2。U4で削除の入口を足すため15秒に統一）', () => {
     t.api!.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
-      Timeout: 9,
+      Timeout: 15,
       MemorySize: 256,
     });
   });
 
-  it('Settings 関数: 128 MB・8 秒、API Gateway の道を持たない', () => {
+  it('Settings 関数: 128 MB・8 秒（U2 時点では API Gateway の道を持たない。U4 で管理者向けの道を足す）', () => {
     const functions = t.api!.findResources('AWS::Lambda::Function') as Record<
       string,
       { Properties: Record<string, unknown> }
     >;
-    const [settingsLogicalId, settingsFn] =
+    const [, settingsFn] =
       Object.entries(functions).find(([logicalId]) => logicalId.startsWith('SettingsFunction')) ??
       [];
     expect(settingsFn?.Properties.MemorySize).toBe(128);
     expect(settingsFn?.Properties.Timeout).toBe(8);
-
-    // Settings 関数を参照する Integration がない（API Gateway の道を持たない）
-    const integrations = t.api!.findResources('AWS::ApiGatewayV2::Integration') as Record<
-      string,
-      { Properties: Record<string, unknown> }
-    >;
-    const referencesSettings = Object.values(integrations).some((i) =>
-      JSON.stringify(i.Properties.IntegrationUri ?? '').includes(settingsLogicalId ?? '__none__'),
-    );
-    expect(referencesSettings).toBe(false);
   });
 
-  it('DuplicateDetection 関数: 256 MB・10 秒。GET /v1/duplicates/{reportId} を認可付きで持つ', () => {
+  it('DuplicateDetection 関数: 256 MB・10 秒以上（U4で削除の入口を足すため15秒に統一）。GET /v1/duplicates/{reportId} を認可付きで持つ', () => {
     const fn = resourcesOf(t.api!, 'AWS::Lambda::Function').find(
       (f) =>
         JSON.stringify(f.Properties.Environment).includes('DUPLICATE_SUSPICIONS_TABLE') &&
         JSON.stringify(f.Properties.Environment).includes('REVIEW_DECISIONS_TABLE'),
     );
     expect(fn?.Properties.MemorySize).toBe(256);
-    expect(fn?.Properties.Timeout).toBe(10);
+    expect(fn?.Properties.Timeout).toBe(15);
     const route = resourcesOf(t.api!, 'AWS::ApiGatewayV2::Route').find(
       (r) => r.Properties.RouteKey === 'GET /v1/duplicates/{reportId}',
     );

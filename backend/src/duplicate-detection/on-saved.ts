@@ -6,6 +6,7 @@ import type { EventBridgeEvent } from 'aws-lambda';
 import {
   createEnvelope,
   EventPublishError,
+  publishAuditRecorded,
   publishEvent,
   type DuplicateSuspectedData,
   type EventEnvelope,
@@ -60,6 +61,29 @@ async function publishSuspected(
     }
     // NFR10.16: 知らせが失われることは受け入れたリスク。判定自体は失敗にしない
   }
+  // U4（BR12.5）: 操作の記録。仕組みが動かした処理のため actorAccountId は空（entities.mdのAuditEntryの注記どおり）
+  await publishAuditRecorded(
+    deps.eventBridge,
+    deps.busName,
+    'DuplicateDetection',
+    {
+      action: 'duplicate.suspected',
+      targetType: 'report',
+      targetId: row.reportId,
+      outcome: 'succeeded',
+      detail: { matchedReportId: row.matchedReportId },
+    },
+    {
+      now,
+      newId: () => `${row.suspicionId}:audit`,
+      publishOptions: deps.publishOptions,
+      onError: (err, eventId) =>
+        deps.logger.error('audit.recorded を送れなかった', {
+          errorCode: 'EVENT_PUBLISH_FAILED',
+          eventId,
+        }),
+    },
+  );
 }
 
 export function createDuplicateOnSaved(deps: DuplicateOnSavedDeps) {

@@ -473,7 +473,8 @@ describe('POST /v1/reports（同じ送信のキーの送り直し。BR2.6）', (
     ebMock.on(PutEventsCommand).resolves({ FailedEntryCount: 0 });
     const res = await submit();
     expect(res.statusCode).toBe(200);
-    expect(ebMock.commandCalls(PutEventsCommand)).toHaveLength(1);
+    // U4: report.saved と audit.recorded（report.submitted）の2件を送り直す
+    expect(ebMock.commandCalls(PutEventsCommand)).toHaveLength(2);
     expect(ddbMock.commandCalls(UpdateCommand)[0]?.args[0].input.Key).toEqual({
       reportId: 'report-0',
     });

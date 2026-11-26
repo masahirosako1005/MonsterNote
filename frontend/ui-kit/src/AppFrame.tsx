@@ -8,7 +8,8 @@ import type { Role } from './session/roles';
 export interface AppFrameProps {
   theme: Theme;
   apiBaseUrl: string;
-  role: Role;
+  /** U4: 管理者の画面を依頼元アプリの中に収めるため、複数の役割を許せるようにする */
+  role: Role | Role[];
   /** 試験では MemoryRouter の最初の道を渡す。なければブラウザの道を使う */
   initialPath?: string;
   children: ReactNode;

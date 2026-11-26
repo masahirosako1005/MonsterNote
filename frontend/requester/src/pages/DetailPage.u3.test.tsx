@@ -27,9 +27,12 @@ async function login(user: ReturnType<typeof newUser>) {
   await user.click(screen.getByTestId('login-submit'));
 }
 
-/** ログイン済みとして詳細を直接開く（出し直し用の値を保存しておく） */
+/** ログイン済みとして詳細を直接開く（出し直し用の値を保存しておく）
+ * U4: RequesterAppはrequester・adminの両方を許すようになったため、保存場所のキーも
+ * 両方をまとめた形になる（session.tsのallowedRoles）
+ */
 function asLoggedIn() {
-  window.localStorage.setItem('monsternote.requester.refreshToken', 'refresh-1');
+  window.localStorage.setItem('monsternote.admin+requester.refreshToken', 'refresh-1');
 }
 
 const report = {

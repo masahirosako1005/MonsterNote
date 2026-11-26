@@ -11,6 +11,9 @@ const ENV = {
   AWS_ACCESS_KEY_ID: 'test',
   AWS_SECRET_ACCESS_KEY: 'test',
   SETTINGS_TABLE: 'Settings',
+  // U4: GET/PUT /v1/admin/settings を足したことに伴う追加の環境変数
+  EVENT_BUS_NAME: 'monsternote-dev',
+  ACCOUNTS_FUNCTION_NAME: 'accounts-function',
 };
 
 beforeEach(() => {
@@ -43,10 +46,13 @@ describe('settings の関数の入口', () => {
     ).resolves.toMatchObject({ duplicateDistanceMeters: 1000 });
   });
 
-  it('API Gateway のイベントなど、内部の呼び出しでない形は拒む', async () => {
+  it('内部の呼び出しでない形は、U4のAPI Gatewayの道として扱う（登録のない道は404）', async () => {
+    // U4: settings関数はGET/PUT /v1/admin/settingsのHTTPの道も持つようになったため、
+    // 「内部の呼び出し専用」として一律拒むのではなく、登録のない道は404になる
     const { handler } = await import('./settings');
-    await expect(
-      handler(apiEvent({ routeKey: 'GET /v1/report-settings', claims: hunterClaims() })),
-    ).rejects.toThrow('内部の呼び出し専用');
+    const res = (await handler(
+      apiEvent({ routeKey: 'GET /v1/report-settings', claims: hunterClaims() }),
+    )) as { statusCode: number };
+    expect(res.statusCode).toBe(404);
   });
 });

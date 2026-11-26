@@ -50,6 +50,7 @@ beforeEach(() => {
   ddbMock.reset();
   lambdaMock.reset();
   rekognitionMock.reset();
+  lambdaMock.on(InvokeCommand).resolves({ Payload: payload({ mustChangePassword: false }) });
   for (const [k, v] of Object.entries(ENV)) vi.stubEnv(k, v);
   vi.resetModules();
 });
@@ -65,7 +66,12 @@ describe('reporting の関数の入口（U2）', () => {
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body ?? '{}') as { targetArea: Record<string, number> };
     expect(body.targetArea).toEqual({ north: 46, south: 20, east: 154, west: 122 });
-    const invoked = lambdaMock.commandCalls(InvokeCommand)[0]?.args[0].input;
+    // U4: mustChangePasswordゲート（accounts-fnへの内部の呼び出し）が先に1回走るため、
+    // settings-fnへの呼び出しを名前で絞って確かめる
+    const invoked = lambdaMock
+      .commandCalls(InvokeCommand)
+      .map((c) => c.args[0].input)
+      .find((i) => i.FunctionName === 'settings-fn');
     expect(invoked?.FunctionName).toBe('settings-fn');
     const sentPayload = JSON.parse(new TextDecoder().decode(invoked?.Payload as Uint8Array));
     expect(sentPayload).toMatchObject({

@@ -2,7 +2,7 @@
 // U2: 位置は地図（MapPicker）で指す。重複の疑い（409）は確認ダイアログで「別の個体なので送る」か「やめる」。
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Stack, Typography } from '@mui/material';
+import { Stack, TextField, Typography } from '@mui/material';
 import { ApiError } from '@ui-kit/api/client';
 import {
   ConfirmDuplicateDialog,
@@ -11,7 +11,7 @@ import {
 import { MapPicker, type GeoPoint, type TargetArea } from '@ui-kit/components/MapPicker';
 import { StepHeader } from '@ui-kit/components/StepHeader';
 import { SubmitButton, type SubmitState } from '@ui-kit/components/SubmitButton';
-import { sexLabel, speciesLabel } from '@ui-kit/labels';
+import { ageClassLabel, captureMethodLabel, sexLabel, speciesLabel } from '@ui-kit/labels';
 import { useSession } from '@ui-kit/session/SessionContext';
 import { DuplicateSuspectedError, getReportSettings, submitReport } from '../api';
 import { confirmDiscard, newSubmissionKey, useHunter } from '../context';
@@ -20,11 +20,19 @@ import { HunterShell } from './HunterShell';
 /** 対象地域が読めないとき・初めて開いたときの地図の中心（日本のおおよその中心） */
 const DEFAULT_LOCATION: GeoPoint = { lat: 36.2, lng: 138.3 };
 
+/** <input type="datetime-local"> の値の形（分の単位。秒以下は切り捨て） */
+function toLocalInputValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function SubmitPage() {
   const { store } = useSession();
   const { deps, draft, setDraft, clearDraft, setJustSubmitted } = useHunter();
   const navigate = useNavigate();
   const [location, setLocation] = useState<GeoPoint>(DEFAULT_LOCATION);
+  // U2（新規。Build and Testで発見）: 捕獲日時。EXIFは読まないため常に手入力（既定は今の時刻）
+  const [capturedAtInput, setCapturedAtInput] = useState(() => toLocalInputValue(new Date()));
   const [targetArea, setTargetArea] = useState<TargetArea>();
   const [state, setState] = useState<SubmitState>('idle');
   const [failure, setFailure] = useState<{ requestId?: string; message?: string }>({});
@@ -42,9 +50,25 @@ export function SubmitPage() {
     };
   }, [store]);
 
-  if (!draft.photoId || !draft.species || !draft.sex)
+  if (
+    !draft.photoId ||
+    !draft.tailPhotoId ||
+    !draft.species ||
+    !draft.sex ||
+    !draft.ageClass ||
+    !draft.captureMethod
+  )
     return <Navigate to="/report/photo" replace />;
-  const { photoId, species, sex } = draft;
+  const {
+    photoId,
+    tailPhotoId,
+    chestPhotoId,
+    chestPhotoMissing,
+    species,
+    sex,
+    ageClass,
+    captureMethod,
+  } = draft;
 
   const submit = async (confirmedNotDuplicate = false) => {
     // 最初の「送る」で送信のキーを作り、「もう一度」でも同じキーを使う
@@ -54,7 +78,23 @@ export function SubmitPage() {
     try {
       const reportId = await submitReport(
         store.api,
-        { submissionKey, photoId, species, sex, location, confirmedNotDuplicate },
+        {
+          submissionKey,
+          photoId,
+          tailPhotoId,
+          chestPhotoId,
+          chestPhotoMissing,
+          species,
+          sex,
+          ageClass,
+          captureMethod,
+          // 画面はEXIFを読まないため、日時・位置の出どころは常に manual（U2のSource。BR2.10）
+          capturedAt: new Date(capturedAtInput).toISOString(),
+          capturedAtSource: 'manual',
+          location,
+          locationSource: 'manual',
+          confirmedNotDuplicate,
+        },
         deps.sleep,
       );
       setJustSubmitted({ reportId, species, submittedAt: new Date().toISOString() });
@@ -107,6 +147,19 @@ export function SubmitPage() {
       <Stack spacing={2}>
         <Typography data-testid="summary-species">種類: {speciesLabel(species)}</Typography>
         <Typography data-testid="summary-sex">雌雄: {sexLabel(sex)}</Typography>
+        <Typography data-testid="summary-age-class">
+          成獣／幼獣: {ageClassLabel(ageClass)}
+        </Typography>
+        <Typography data-testid="summary-capture-method">
+          捕獲の方法: {captureMethodLabel(captureMethod)}
+        </Typography>
+        <TextField
+          label="捕獲した日時"
+          type="datetime-local"
+          value={capturedAtInput}
+          onChange={(e) => setCapturedAtInput(e.target.value)}
+          slotProps={{ htmlInput: { 'data-testid': 'captured-at-input' } }}
+        />
         <MapPicker value={location} onChange={setLocation} targetArea={targetArea} />
         <SubmitButton
           state={state}

@@ -9,6 +9,7 @@ import { getCaller, requireRole } from '../shared/auth';
 import { errors } from '../shared/errors';
 import {
   createEnvelope,
+  publishAuditRecorded,
   publishEvent,
   type PublishOptions,
   type ReviewStatusChangedData,
@@ -113,6 +114,32 @@ export function createUndoRoutes(deps: UndoDeps): Record<string, RouteHandler> {
       };
       // BR3.13: すぐ送る（結果は待たない）
       publishUndone(previous, nowIso, caller.accountId);
+      // U4（BR12.5）: 操作の記録も同じく、結果を待たず1回だけ試す（NFR2.14の2秒予算）
+      void publishAuditRecorded(
+        deps.eventBridge,
+        deps.busName,
+        'Review',
+        {
+          action: 'review.undone',
+          targetType: 'report',
+          targetId: reportId,
+          outcome: 'succeeded',
+          actorAccountId: caller.accountId,
+          actorName: caller.name,
+        },
+        {
+          actorAccountId: caller.accountId,
+          now,
+          newId,
+          publishOptions: { ...deps.publishOptions, delaysMs: [] },
+          onError: (err, eventId) =>
+            deps.logger.error('audit.recorded（取り消し）を送れなかった', {
+              requestId,
+              errorCode: 'EVENT_PUBLISH_FAILED',
+              eventId,
+            }),
+        },
+      );
       return json(200, reviewView(updated), requestId);
     },
   };

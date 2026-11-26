@@ -10,11 +10,11 @@
 ## このUnitだけを動かすコマンド
 
 ```bash
-npx vitest run backend/src/accounts backend/src/audit-log backend/src/shared/require-password-changed.u4.test.ts backend/src/handlers/accounts.u4.test.ts backend/src/handlers/audit-log.u4.test.ts
+npx vitest run backend/src/accounts backend/src/audit-log backend/src/shared/*.u4.test.ts backend/src/handlers/handlers.u4.test.ts
 ```
 
 ```bash
-npx vitest run backend/src/catalog/delete-all.u4.test.ts backend/src/review/delete-all.u4.test.ts backend/src/duplicate-detection/delete-all.u4.test.ts backend/src/reporting/delete-all.u4.test.ts backend/src/handlers/settings.u4.test.ts
+npx vitest run backend/src/catalog/delete-all.u4.test.ts backend/src/review/delete-all.u4.test.ts backend/src/duplicate-detection/delete-all.u4.test.ts backend/src/reporting/delete-all.u4.test.ts backend/src/settings/get-settings.u4.test.ts backend/src/settings/update-settings.u4.test.ts
 ```
 
 ```bash

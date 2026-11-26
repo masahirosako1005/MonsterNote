@@ -67,6 +67,12 @@ describe('種類の自動判別の表示（BR6.4）', () => {
     await uploadPhoto();
     expect(await screen.findByTestId('detection-result')).toHaveTextContent('イノシシ（92%）');
     await userEvent.click(screen.getByTestId('photo-next'));
+    // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+    await userEvent.upload(
+      await screen.findByTestId('photo-input'),
+      new File(['x'], 'tail.jpg', { type: 'image/jpeg' }),
+    );
+    await userEvent.click(await screen.findByTestId('photo-tail-next'));
     // BR6.4: 判別できた種類が選ばれた状態（aria-checked=true）。ハンターは選び直せる
     expect(await screen.findByTestId('species-boar')).toHaveAttribute('aria-checked', 'true');
     await userEvent.click(screen.getByTestId('species-deer'));
@@ -87,8 +93,83 @@ describe('種類の自動判別の表示（BR6.4）', () => {
       '判別できませんでした。手で選んでください',
     );
     await userEvent.click(screen.getByTestId('photo-next'));
+    // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+    await userEvent.upload(
+      await screen.findByTestId('photo-input'),
+      new File(['x'], 'tail.jpg', { type: 'image/jpeg' }),
+    );
+    await userEvent.click(await screen.findByTestId('photo-tail-next'));
     expect(await screen.findByTestId('species-boar')).toHaveAttribute('aria-checked', 'false');
     expect(screen.getByTestId('species-deer')).toHaveAttribute('aria-checked', 'false');
+  });
+});
+
+describe('クマの胸の写真（BR2.17・BR2.18。Build and Testで発見・新規）', () => {
+  async function toChoicePage() {
+    await uploadPhoto();
+    await userEvent.click(await screen.findByTestId('photo-next'));
+    await userEvent.upload(
+      await screen.findByTestId('photo-input'),
+      new File(['x'], 'tail.jpg', { type: 'image/jpeg' }),
+    );
+    await userEvent.click(await screen.findByTestId('photo-tail-next'));
+  }
+
+  it('クマを選ぶと胸の写真か「撮らなかった」のどちらかを選ぶまで次へ進めない', async () => {
+    server.use(
+      ...sessionHandlers('hunter'),
+      reportSettingsHandler(),
+      ...photoHandlers({ outcome: 'undetected' }),
+      emptyList(),
+    );
+    renderApp('/login');
+    await login();
+    await toChoicePage();
+    await userEvent.click(screen.getByTestId('species-bear'));
+    await userEvent.click(screen.getByTestId('sex-male'));
+    await userEvent.click(screen.getByTestId('age-class-adult'));
+    await userEvent.click(screen.getByTestId('capture-method-trap'));
+    expect(screen.getByTestId('choice-next')).toBeDisabled();
+
+    await userEvent.upload(
+      await screen.findByTestId('photo-input'),
+      new File(['x'], 'chest.jpg', { type: 'image/jpeg' }),
+    );
+    expect(await screen.findByTestId('choice-next')).toBeEnabled();
+  });
+
+  it('「胸の写真を撮らなかった」を選んでも次へ進める', async () => {
+    server.use(
+      ...sessionHandlers('hunter'),
+      reportSettingsHandler(),
+      ...photoHandlers({ outcome: 'undetected' }),
+      emptyList(),
+    );
+    renderApp('/login');
+    await login();
+    await toChoicePage();
+    await userEvent.click(screen.getByTestId('species-bear'));
+    await userEvent.click(screen.getByTestId('sex-male'));
+    await userEvent.click(screen.getByTestId('age-class-adult'));
+    await userEvent.click(screen.getByTestId('capture-method-trap'));
+    expect(screen.getByTestId('choice-next')).toBeDisabled();
+
+    await userEvent.click(screen.getByTestId('chest-photo-missing'));
+    expect(screen.getByTestId('choice-next')).toBeEnabled();
+  });
+
+  it('クマ以外を選ぶと胸の写真の入力は出ない', async () => {
+    server.use(
+      ...sessionHandlers('hunter'),
+      reportSettingsHandler(),
+      ...photoHandlers({ outcome: 'undetected' }),
+      emptyList(),
+    );
+    renderApp('/login');
+    await login();
+    await toChoicePage();
+    await userEvent.click(screen.getByTestId('species-boar'));
+    expect(screen.queryByTestId('chest-photo-missing')).not.toBeInTheDocument();
   });
 });
 
@@ -96,8 +177,16 @@ describe('重複の確認ダイアログ（BR7.1・BR7.2・BR7.4）', () => {
   async function goToSubmit() {
     await uploadPhoto();
     await userEvent.click(await screen.findByTestId('photo-next'));
+    // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+    await userEvent.upload(
+      await screen.findByTestId('photo-input'),
+      new File(['x'], 'tail.jpg', { type: 'image/jpeg' }),
+    );
+    await userEvent.click(await screen.findByTestId('photo-tail-next'));
     await userEvent.click(await screen.findByTestId('species-boar'));
     await userEvent.click(screen.getByTestId('sex-male'));
+    await userEvent.click(screen.getByTestId('age-class-adult'));
+    await userEvent.click(screen.getByTestId('capture-method-trap'));
     await userEvent.click(screen.getByTestId('choice-next'));
     await screen.findByTestId('map-tiles');
   }
@@ -177,8 +266,16 @@ describe('対象地域の読み出し（ADR-010・BR2.16）', () => {
   async function goToSubmit() {
     await uploadPhoto();
     await userEvent.click(await screen.findByTestId('photo-next'));
+    // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+    await userEvent.upload(
+      await screen.findByTestId('photo-input'),
+      new File(['x'], 'tail.jpg', { type: 'image/jpeg' }),
+    );
+    await userEvent.click(await screen.findByTestId('photo-tail-next'));
     await userEvent.click(await screen.findByTestId('species-boar'));
     await userEvent.click(screen.getByTestId('sex-male'));
+    await userEvent.click(screen.getByTestId('age-class-adult'));
+    await userEvent.click(screen.getByTestId('capture-method-trap'));
     await userEvent.click(screen.getByTestId('choice-next'));
     await screen.findByTestId('map-tiles');
   }

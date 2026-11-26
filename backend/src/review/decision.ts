@@ -10,6 +10,7 @@ import { errors } from '../shared/errors';
 import {
   createEnvelope,
   EventPublishError,
+  publishAuditRecorded,
   publishEvent,
   type PublishOptions,
   type ReviewStatusChangedData,
@@ -167,6 +168,32 @@ export function createDecisionRoutes(deps: DecisionDeps): Record<string, RouteHa
       eventSent: false,
     };
     await publishStatusChanged(decided, 'checking', caller.accountId, requestId);
+    // U4（BR12.5）: 操作の記録。補助的な観測のため、失敗しても主な処理は止めない
+    await publishAuditRecorded(
+      deps.eventBridge,
+      deps.busName,
+      'Review',
+      {
+        action: status === 'approved' ? 'review.approved' : 'review.rejected',
+        targetType: 'report',
+        targetId: reportId,
+        outcome: 'succeeded',
+        actorAccountId: caller.accountId,
+        actorName: caller.name,
+      },
+      {
+        actorAccountId: caller.accountId,
+        now,
+        newId,
+        publishOptions: deps.publishOptions,
+        onError: (err, eventId) =>
+          deps.logger.error('audit.recorded を送れなかった', {
+            requestId,
+            errorCode: 'EVENT_PUBLISH_FAILED',
+            eventId,
+          }),
+      },
+    );
     return json(200, reviewView(decided, { includeUndo: true }), requestId);
   }
 

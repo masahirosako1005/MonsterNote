@@ -157,9 +157,9 @@ describe('Web（画面の配信）', () => {
 });
 
 describe('Data（DynamoDB と写真の S3）', () => {
-  it('表は 12 個（U1 の 7 つ + U2 の 5 つ）で、すべてオンデマンド・消さずに残す（RETAIN）', () => {
+  it('表は 14 個（U1 の 7 つ + U2 の 5 つ + U4 の 2 つ）で、すべてオンデマンド・消さずに残す（RETAIN）', () => {
     const tables = t.data!.findResources('AWS::DynamoDB::Table');
-    expect(Object.keys(tables)).toHaveLength(12);
+    expect(Object.keys(tables)).toHaveLength(14);
     for (const table of Object.values(tables) as {
       Properties: Record<string, unknown>;
       DeletionPolicy: string;
@@ -169,7 +169,7 @@ describe('Data（DynamoDB と写真の S3）', () => {
     }
   });
 
-  it('表のキー（U1: accountId・reportId・submissionKey・photoId・consumerEventId、U2 の 5 つを含む）', () => {
+  it('表のキー（U1: accountId・reportId・submissionKey・photoId・consumerEventId、U2 の 5 つ、U4 の counterKey・entryId を含む）', () => {
     const keys = resourcesOf(t.data!, 'AWS::DynamoDB::Table').map(
       (table) => (table.Properties.KeySchema as { AttributeName: string }[])[0]?.AttributeName,
     );
@@ -178,6 +178,8 @@ describe('Data（DynamoDB と写真の S3）', () => {
         'accountId',
         'accountIdDate',
         'consumerEventId',
+        'counterKey',
+        'entryId',
         'photoId',
         'photoId',
         'reportId',
@@ -194,12 +196,13 @@ describe('Data（DynamoDB と写真の S3）', () => {
   it('Accounts に loginId の索引、ReportListItems に gsiAll と gsiHunter の索引', () => {
     t.data!.hasResourceProperties('AWS::DynamoDB::Table', {
       KeySchema: [{ AttributeName: 'accountId', KeyType: 'HASH' }],
-      GlobalSecondaryIndexes: [
+      // U4: 一覧用の gsiAll が増えて 2 つになった
+      GlobalSecondaryIndexes: Match.arrayWith([
         Match.objectLike({
           IndexName: 'loginId',
           KeySchema: [{ AttributeName: 'loginId', KeyType: 'HASH' }],
         }),
-      ],
+      ]),
     });
     t.data!.hasResourceProperties('AWS::DynamoDB::Table', {
       GlobalSecondaryIndexes: Match.arrayWith([
@@ -266,7 +269,9 @@ describe('Api（HTTP API・関数・知らせ・監視）', () => {
     const keys = routes.map((r) => String(r.Properties.RouteKey));
     // U1 の 11 個 + U2 の 2 個（GET /v1/report-settings・GET /v1/duplicates/{reportId}）
     // + U3 の 1 個（POST /v1/reviews/{reportId}/decision/undo）
-    expect(keys).toHaveLength(14);
+    // + U4 の 16 個（/v1/me系 4、/v1/admin/accounts系 4、/v1/admin/settings系 2、
+    //   /v1/admin/audit-entries 1、すべて削除の入口 5）
+    expect(keys).toHaveLength(30);
     expect(keys).toEqual(
       expect.arrayContaining([
         'DELETE /v1/session',
@@ -296,21 +301,22 @@ describe('Api（HTTP API・関数・知らせ・監視）', () => {
     });
   });
 
-  it('関数は 11 個（U1 の 7 つ + U2 の 4 つ）: Arm・Node.js 22・メモリ 128〜256 MB・時間切れ 8〜10 秒', () => {
+  it('関数は 12 個（U1 の 7 つ + U2 の 4 つ + U4 の AuditLog）: Arm・Node.js 22・メモリ 128〜256 MB・時間切れ 8〜15 秒', () => {
     const fns = resourcesOf(t.api!, 'AWS::Lambda::Function');
-    expect(fns).toHaveLength(11);
+    expect(fns).toHaveLength(12);
     for (const fn of fns) {
       expect(fn.Properties.Architectures).toEqual(['arm64']);
       expect(fn.Properties.Runtime).toBe('nodejs22.x');
       expect(fn.Properties.MemorySize as number).toBeGreaterThanOrEqual(128);
       expect(fn.Properties.MemorySize as number).toBeLessThanOrEqual(256);
-      // U2（performance-design §2）: Reporting は 9 秒に引き上げた
-      expect([8, 9, 10]).toContain(fn.Properties.Timeout);
+      // U4: 削除の入口を足すため、API 向けの関数（Reporting・Review・Catalog・DuplicateDetection）は15秒に統一
+      expect([8, 10, 15]).toContain(fn.Properties.Timeout);
     }
     // 256 MB: Reporting・DuplicateDetection・DuplicateDetectionOnSaved
     expect(fns.filter((f) => f.Properties.MemorySize === 256)).toHaveLength(3);
-    expect(fns.filter((f) => f.Properties.Timeout === 9)).toHaveLength(1);
+    expect(fns.filter((f) => f.Properties.Timeout === 8)).toHaveLength(2);
     expect(fns.filter((f) => f.Properties.Timeout === 10)).toHaveLength(6);
+    expect(fns.filter((f) => f.Properties.Timeout === 15)).toHaveLength(4);
   });
 
   it('すべての関数（画面の配置の関数も）のメモリは 128〜256 MB、ロググループは 14 日以内', () => {
@@ -348,11 +354,16 @@ describe('Api（HTTP API・関数・知らせ・監視）', () => {
       expect(JSON.stringify(policy?.Properties.PolicyDocument)).toContain('lambda:InvokeFunction');
     }
 
-    // それ以外の関数（画面向けの道・一覧・知らせの受け手の一部）は他の関数を呼ばない
+    // それ以外の関数（知らせの受け手など）は他の関数を呼ばない
+    // U4: review・catalog・settings・audit-logもmustChangePasswordの確認（caller-status）でAccountsを呼ぶようになった
     const invokerNames = [
       'ReportingFunction',
       'DuplicateDetectionFunction',
       'DuplicateDetectionOnSavedFunction',
+      'ReviewFunction',
+      'CatalogFunction',
+      'SettingsFunction',
+      'AuditLogFunction',
     ];
     const others = policies.filter(
       (p) => !invokerNames.some((name) => JSON.stringify(p.Properties.Roles).includes(name)),
@@ -382,10 +393,11 @@ describe('Api（HTTP API・関数・知らせ・監視）', () => {
     const perms = resourcesOf(t.api!, 'AWS::Lambda::Permission').filter(
       (p) => p.Properties.Principal === 'events.amazonaws.com',
     );
-    expect(perms).toHaveLength(6);
+    // U4: audit.recorded のルールが AuditLog を受け手に加えて 7 個になる
+    expect(perms).toHaveLength(7);
   });
 
-  it('アラームは 2 つ: 5xx の割合（計算式・データがなければ正常）と関数のエラー。宛先は SNS', () => {
+  it('アラームは 5xx の割合（計算式・データがなければ正常）と関数のエラー（CloudWatch の 1 アラーム 10 指標上限のため 9 個ずつの組に分割。U4 で関数が 12 個になり 2 組）。宛先は SNS', () => {
     t.api!.hasResourceProperties('AWS::CloudWatch::Alarm', {
       AlarmName: 'masahiro-cloudwatch-monsternote-api-5xx',
       Threshold: 5,
@@ -397,12 +409,18 @@ describe('Api（HTTP API・関数・知らせ・監視）', () => {
       ]),
     });
     t.api!.hasResourceProperties('AWS::CloudWatch::Alarm', {
-      AlarmName: 'masahiro-cloudwatch-monsternote-lambda-errors',
+      AlarmName: 'masahiro-cloudwatch-monsternote-lambda-errors-0',
       Threshold: 3,
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       TreatMissingData: 'notBreaching',
     });
-    t.api!.resourceCountIs('AWS::CloudWatch::Alarm', 2);
+    t.api!.hasResourceProperties('AWS::CloudWatch::Alarm', {
+      AlarmName: 'masahiro-cloudwatch-monsternote-lambda-errors-1',
+      Threshold: 3,
+      ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+      TreatMissingData: 'notBreaching',
+    });
+    t.api!.resourceCountIs('AWS::CloudWatch::Alarm', 3);
     t.api!.hasResourceProperties('AWS::SNS::Topic', {
       TopicName: 'masahiro-sns-monsternote-alarm',
     });

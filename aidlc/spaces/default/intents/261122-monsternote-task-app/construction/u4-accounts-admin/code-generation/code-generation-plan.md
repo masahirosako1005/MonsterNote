@@ -18,33 +18,50 @@
 
 これを追加しないと、UC27・AC6.6.1（「依頼元の承認なら『承認・依頼元の名前・日時・報告』」）が満たせない。
 
-## 1. データモデル（Red → Green → Refactor）
+## 0b. Code Generation後に自己発見・修正した欠陥（重要。d60e400a）
 
-- [ ] Step 1: `backend/src/accounts/repository.ts`を拡張し、`Account`に`consentDeclinedAt`・`createdByAccountId`・`lastActiveAt`を追加（entities.md）。`AdminCounter`用の新しいリポジトリ`backend/src/accounts/admin-counter.ts`（新規）を作る: `incrementOnCreate`・`decrementOnDisable`（条件`activeAdminCount >= :two`）・`incrementOnEnable`・`reconcile`（一覧読み出し時の数え直し）。`backend/src/audit-log/repository.ts`（新規）: `AuditEntry`の`putIfAbsent`（`ConditionExpression: attribute_not_exists(eventId)`）・`listPage`（occurredAtの新しい順・50件）。対応するテスト: `admin-counter.u4.test.ts`・`audit-log/repository.u4.test.ts`・`accounts/repository.u4.test.ts`（拡張分）。DynamoDB Localでの結合試験も含める。
+Step 13（インフラ）完了後、`npm run verify`の前に自分の実装を見直し、2件の欠陥を見つけて直した（人に報告のうえ修正を承認済み）:
+
+1. **管理者専用の11個のAPIすべてに`role=admin`のサーバー側確認が無かった**（重大なセキュリティ上の欠陥）。`createCreateAccountRoute`・`createPasswordResetRoute`・`createSetStatusRoute`・`createListAccountsRoute`・`createGetSettingsRoute`・`createUpdateSettingsRoute`・`createListEntriesRoute`・5つの`createDeleteAllRoute`系すべてで`requireRole(caller, 'admin')`を呼んでいなかった。ハンター・依頼元としてログインした利用者でも、これらの管理者専用の道を直接呼べる状態だった。各ファイルの該当箇所に`requireRole(caller, 'admin')`を追加し、各ルートに403のテストを足した。
+2. **BR12.5が求めるアカウントの作成・再設定・無効化の操作の記録が一切残っていなかった**。`accounts`関数にEventBridgeへ送信する経路（環境変数`EVENT_BUS_NAME`・IAM権限）自体が無かったため。`create-account.ts`（action: account.created）・`password-reset.ts`（account.password-reset）・`set-status.ts`（account.disabled／account.enabled）に`publishAuditRecorded`の呼び出しを追加し、`infra/lib/api-stack.ts`にaccounts関数へのEventBridge配線を足した。
+
+どちらも`npm run verify`実行前に修正済み（バックエンド402件・フロントエンド等含め計611件のテスト、E2E 30件、CDK synthですべて確認）。
+
+## 0c. アーキテクチャレビュー（iteration 1）が見つけた欠陥
+
+独立した敵対的レビュー（`aidlc-architecture-reviewer-agent`、iteration 1）が、§0bで直した3件と同じ種類の欠陥をもう1件見つけた（NOT-READY、Major 2件・Minor 1件）:
+
+1. **（Major）`backend/src/handlers/audit-log.ts`に`passwordGate`が無かった** — §0bで6つのハンドラ（accounts・catalog・reporting・settings・review・duplicate-detection）に`passwordGate`を配線したが、U4で新設したもう1つの管理者専用ハンドラ`audit-log.ts`にだけ配線し忘れていた。`GET /v1/admin/audit-entries`は仮のパスワードのままの管理者でも呼べる状態だった。`createRemotePasswordGate`を他の5つと同じ形で配線し、`infra/lib/api-stack.ts`にAccountsへのEventBridge Invoke権限と`ACCOUNTS_FUNCTION_NAME`環境変数を追加し、403になることのテストを足した。
+2. **（Major）`unit-test-instructions.md`自身の「このUnitだけを動かすコマンド」が壊れていた** — 1本目のコマンドは`backend/src/shared/`の新規テスト3本（`batch-delete`・`events`・`password-gate-client`）と、存在しない`accounts.u4.test.ts`・`audit-log.u4.test.ts`（実際は`handlers.u4.test.ts`にまとまっている）を指しており、2本目のコマンドは存在しない`backend/src/handlers/settings.u4.test.ts`を指していた（Vitestはこれをエラーなく黙って無視する）。両方のコマンドを実在するパス・globに直した。
+3. **（Minor）`code-summary.md`の「行カバレッジ86.17%」が実際にはStmts列の値で、Lines列（88.35%）と食い違っていた** — ラベルをLines列の値に合わせて修正した。
+
+いずれも人には確認せず、レビューの指摘どおりにその場で修正し、2回目のレビューを受けた（下記）。
+
+- [x] Step 1: `backend/src/accounts/repository.ts`を拡張し、`Account`に`consentDeclinedAt`・`createdByAccountId`・`lastActiveAt`を追加（entities.md）。`AdminCounter`用の新しいリポジトリ`backend/src/accounts/admin-counter.ts`（新規）を作る: `incrementOnCreate`・`decrementOnDisable`（条件`activeAdminCount >= :two`）・`incrementOnEnable`・`reconcile`（一覧読み出し時の数え直し）。`backend/src/audit-log/repository.ts`（新規）: `AuditEntry`の`putIfAbsent`（`ConditionExpression: attribute_not_exists(eventId)`）・`listPage`（occurredAtの新しい順・50件）。対応するテスト: `admin-counter.u4.test.ts`・`audit-log/repository.u4.test.ts`・`accounts/repository.u4.test.ts`（拡張分）。DynamoDB Localでの結合試験も含める。
 
 ## 2. 共有ミドルウェア（mustChangePassword。security-design.md §1）
 
-- [ ] Step 2: `backend/src/shared/require-password-changed.ts`（新規）。JWTのclaimsとAccountの`mustChangePassword`を見て、`PUT /v1/me/password`・`GET /v1/me`以外のすべてのルートを`403 PASSWORD_CHANGE_REQUIRED`で拒む共通関数を作る。既存の各ハンドラ（`accounts.ts`・`reporting.ts`・`review.ts`・`catalog.ts`・`duplicate-detection.ts`・`settings.ts`）のルーティングの入口（`handlers/*.ts`のリクエストディスパッチ部分）1箇所ずつにこのチェックを差し込む（個別のビジネスロジックには書かない）。テスト: `require-password-changed.u4.test.ts`（単体）、既存ハンドラの統合テストに「mustChangePassword=trueのときは403」のケースを1件ずつ追加。
+- [x] Step 2: `backend/src/shared/require-password-changed.ts`（新規）。JWTのclaimsとAccountの`mustChangePassword`を見て、`PUT /v1/me/password`・`GET /v1/me`以外のすべてのルートを`403 PASSWORD_CHANGE_REQUIRED`で拒む共通関数を作る。既存の各ハンドラ（`accounts.ts`・`reporting.ts`・`review.ts`・`catalog.ts`・`duplicate-detection.ts`・`settings.ts`）のルーティングの入口（`handlers/*.ts`のリクエストディスパッチ部分）1箇所ずつにこのチェックを差し込む（個別のビジネスロジックには書かない）。テスト: `require-password-changed.u4.test.ts`（単体）、既存ハンドラの統合テストに「mustChangePassword=trueのときは403」のケースを1件ずつ追加。
 
 ## 3. アカウントの初回手続き（UC21。BR11.4〜BR11.7）
 
-- [ ] Step 3: `backend/src/accounts/`に`change-password.ts`（`PUT /v1/me/password`。8文字以上・英字数字の確認、Cognitoの`AdminSetUserPassword`→`mustChangePassword=false`の更新）、`consent.ts`（`PUT /v1/me/consent`。同意する/しないでconsentedAt/consentDeclinedAtを更新）、`hunter-number.ts`（`PUT /v1/me/hunter-number`。数字1〜20桁の確認）、`get-me.ts`（`GET /v1/me`。3つの印を返す）を追加。`POST /v1/session`の応答（既存の`accounts/session.ts`）に`mustChangePassword`・`consentRequired`・`hunterNumberRequired`の3つの印を追加（BR11.7・C1）。テスト: 各ファイルに対応する`.u4.test.ts`、境界値（7文字のパスワード、空の従事者番号など）を含む。
+- [x] Step 3: `backend/src/accounts/`に`change-password.ts`（`PUT /v1/me/password`。8文字以上・英字数字の確認、Cognitoの`AdminSetUserPassword`→`mustChangePassword=false`の更新）、`consent.ts`（`PUT /v1/me/consent`。同意する/しないでconsentedAt/consentDeclinedAtを更新）、`hunter-number.ts`（`PUT /v1/me/hunter-number`。数字1〜20桁の確認）、`get-me.ts`（`GET /v1/me`。3つの印を返す）を追加。`POST /v1/session`の応答（既存の`accounts/session.ts`）に`mustChangePassword`・`consentRequired`・`hunterNumberRequired`の3つの印を追加（BR11.7・C1）。テスト: 各ファイルに対応する`.u4.test.ts`、境界値（7文字のパスワード、空の従事者番号など）を含む。
 
 ## 4. 管理者のアカウント管理（UC22〜UC24。BR11.1〜BR11.3・BR11.9〜BR11.11）
 
-- [ ] Step 4: `backend/src/accounts/`に`create-account.ts`（`POST /v1/admin/accounts`。項目確認→Cognito `AdminCreateUser`/`AdminSetUserPassword`（Q3-A: 先にCognito、成功後にDynamoDBのTransactWriteItems）→`Account`作成＋`AdminCounter`+1〈role=adminのときだけ〉）、`password-reset.ts`（`POST /v1/admin/accounts/{id}/password-reset`）、`set-status.ts`（`PUT /v1/admin/accounts/{id}/status`。自分自身チェック→無効化はTransactWriteItems〈status=disabled AND AdminCounter-1、条件activeAdminCount>=2〉、有効化はstatus=active AND AdminCounter+1）、`list-accounts.ts`（`GET /v1/admin/accounts`。読み出し時にAdminCounterの数え直しも行う。reliability-design.md §1）を追加。reliability-design.mdの指示どおり、**DynamoDB側にloginIdの一意性確認の仕組み（条件付き書き込み・ロック項目）を実装しない**（Cognitoの`UsernameExistsException`に委ねる。重複時は`409 LOGIN_ID_TAKEN`）。テスト: 各ファイルの`.u4.test.ts`、同時に2人を無効化する同時操作のテスト（NFR13.11）、最後の管理者・自分自身のケース。
+- [x] Step 4: `backend/src/accounts/`に`create-account.ts`（`POST /v1/admin/accounts`。項目確認→Cognito `AdminCreateUser`/`AdminSetUserPassword`（Q3-A: 先にCognito、成功後にDynamoDBのTransactWriteItems）→`Account`作成＋`AdminCounter`+1〈role=adminのときだけ〉）、`password-reset.ts`（`POST /v1/admin/accounts/{id}/password-reset`）、`set-status.ts`（`PUT /v1/admin/accounts/{id}/status`。自分自身チェック→無効化はTransactWriteItems〈status=disabled AND AdminCounter-1、条件activeAdminCount>=2〉、有効化はstatus=active AND AdminCounter+1）、`list-accounts.ts`（`GET /v1/admin/accounts`。読み出し時にAdminCounterの数え直しも行う。reliability-design.md §1）を追加。reliability-design.mdの指示どおり、**DynamoDB側にloginIdの一意性確認の仕組み（条件付き書き込み・ロック項目）を実装しない**（Cognitoの`UsernameExistsException`に委ねる。重複時は`409 LOGIN_ID_TAKEN`）。テスト: 各ファイルの`.u4.test.ts`、同時に2人を無効化する同時操作のテスト（NFR13.11）、最後の管理者・自分自身のケース。
 
 ## 5. 操作の記録（UC27・UC28。BR12.1〜BR12.5）
 
-- [ ] Step 5: §0で特定した4箇所（reporting/submit.ts・review/decision.ts・review/undo.ts・duplicate-detection配下）に`publishEvent('audit.recorded', ...)`の送信を追加する。`shared/events.ts`に`AuditRecordedData`型（action・targetType・targetId・actorAccountId・actorName・outcome・detail）を追加。`backend/src/audit-log/`に`on-recorded.ts`（知らせの受け手。eventId条件付きPutItem）・`list-entries.ts`（`GET /v1/admin/audit-entries`）を追加。`backend/src/accounts/`・`backend/src/handlers/settings.ts`の作成・無効化・有効化・パスワード再設定・設定変更の各処理からも`audit.recorded`を送る（account.created・account.disabled・account.enabled・account.password-reset・settings.updated）。テスト: `on-recorded.u4.test.ts`（同じeventIdを2回受けても1件）、`list-entries.u4.test.ts`、既存の4箇所の拡張テストに「audit.recordedを送ること」のアサーションを追加。
+- [x] Step 5: §0で特定した4箇所（reporting/submit.ts・review/decision.ts・review/undo.ts・duplicate-detection配下）に`publishEvent('audit.recorded', ...)`の送信を追加する。`shared/events.ts`に`AuditRecordedData`型（action・targetType・targetId・actorAccountId・actorName・outcome・detail）を追加。`backend/src/audit-log/`に`on-recorded.ts`（知らせの受け手。eventId条件付きPutItem）・`list-entries.ts`（`GET /v1/admin/audit-entries`）を追加。`backend/src/accounts/`・`backend/src/handlers/settings.ts`の作成・無効化・有効化・パスワード再設定・設定変更の各処理からも`audit.recorded`を送る（account.created・account.disabled・account.enabled・account.password-reset・settings.updated）。テスト: `on-recorded.u4.test.ts`（同じeventIdを2回受けても1件）、`list-entries.u4.test.ts`、既存の4箇所の拡張テストに「audit.recordedを送ること」のアサーションを追加。
 
 ## 6. 設定の変更（UC25。BR9.2・BR9.4）
 
-- [ ] Step 6: 既存の`backend/src/handlers/settings.ts`・`backend/src/settings/`（U2で作成済み、読み出し専用）に`update-settings.ts`（`PUT /v1/admin/settings`）を追加。範囲確認（距離1m以上、北>南・東>西）、`updatedByAccountId`・`updatedAt`の記録、`audit.recorded`（settings.updated）の送信。テスト: `update-settings.u4.test.ts`（範囲外の値のケースを含む）。
+- [x] Step 6: 既存の`backend/src/handlers/settings.ts`・`backend/src/settings/`（U2で作成済み、読み出し専用）に`update-settings.ts`（`PUT /v1/admin/settings`）を追加。範囲確認（距離1m以上、北>南・東>西）、`updatedByAccountId`・`updatedAt`の記録、`audit.recorded`（settings.updated）の送信。テスト: `update-settings.u4.test.ts`（範囲外の値のケースを含む）。
 
 ## 7. 試験運用の終わりの削除（UC26。BR13.1〜BR13.4）
 
-- [ ] Step 7: 4つの既存関数に削除の入口を追加する（U1の実際の構成どおり、review・catalogは別関数。infrastructure-specification.md）:
+- [x] Step 7: 4つの既存関数に削除の入口を追加する（U1の実際の構成どおり、review・catalogは別関数。infrastructure-specification.md）:
   - `backend/src/catalog/delete-all.ts`（新規。`POST /v1/admin/catalog-data`。`ReportListItems`をBatchWriteItemでループ削除）
   - `backend/src/review/delete-all.ts`（新規。`POST /v1/admin/review-data`。`ReviewDecisions`）
   - `backend/src/duplicate-detection/delete-all.ts`（新規。`POST /v1/admin/duplicate-data`。`ReportFootprints`・`DuplicateSuspicions`の両方）
@@ -53,29 +70,29 @@
 
 ## 8. API層（ハンドラーの配線）
 
-- [ ] Step 8: `backend/src/handlers/accounts.ts`に新しいルート（`PUT /v1/me/password`・`PUT /v1/me/consent`・`PUT /v1/me/hunter-number`・`GET /v1/me`・`GET /v1/admin/accounts`・`POST /v1/admin/accounts`・`PUT /v1/admin/accounts/{id}/status`・`POST /v1/admin/accounts/{id}/password-reset`）を配線。`backend/src/handlers/catalog.ts`・`review.ts`・`duplicate-detection.ts`・`reporting.ts`に削除の入口のルートを配線。`backend/src/handlers/settings.ts`に`PUT /v1/admin/settings`を配線。`backend/src/handlers/audit-log.ts`（新規）に`GET /v1/admin/audit-entries`とEventBridgeの受け手（`onRecordedHandler`）を配線。すべて`role=admin`のJWT確認（既存の`shared/auth.ts`相当の仕組みを再利用）とStep 2のmustChangePasswordミドルウェアを通す。テスト: `handlers.u4.test.ts`（ルーティングの確認、403/404の境界）。
+- [x] Step 8: `backend/src/handlers/accounts.ts`に新しいルート（`PUT /v1/me/password`・`PUT /v1/me/consent`・`PUT /v1/me/hunter-number`・`GET /v1/me`・`GET /v1/admin/accounts`・`POST /v1/admin/accounts`・`PUT /v1/admin/accounts/{id}/status`・`POST /v1/admin/accounts/{id}/password-reset`）を配線。`backend/src/handlers/catalog.ts`・`review.ts`・`duplicate-detection.ts`・`reporting.ts`に削除の入口のルートを配線。`backend/src/handlers/settings.ts`に`PUT /v1/admin/settings`を配線。`backend/src/handlers/audit-log.ts`（新規）に`GET /v1/admin/audit-entries`とEventBridgeの受け手（`onRecordedHandler`）を配線。すべて`role=admin`のJWT確認（既存の`shared/auth.ts`相当の仕組みを再利用）とStep 2のmustChangePasswordミドルウェアを通す。テスト: `handlers.u4.test.ts`（ルーティングの確認、403/404の境界）。
 
 ## 9. フロントエンド（Red → Green → Refactor）
 
-- [ ] Step 9 (Red): 新しい部品・画面のテストを先に書く: `frontend/ui-kit/src/components/`の`PasswordChangeForm`・`ConsentPanel`・`HunterNumberForm`・`AccountTable`・`AccountForm`・`TempPasswordPanel`・`SettingsForm`（書き込み対応に拡張）・`AuditTable`・`DeleteConfirm`・`DeleteProgress`の`.u4.test.tsx`。`frontend/ui-kit/src/session/roles.ts`・`SessionContext.tsx`の`requiredRole`を`Role | Role[]`に拡張するテスト（管理者が依頼元の画面にも入れるようにするため。後述）。
-- [ ] Step 10 (Green): 上記の部品を実装する。`frontend/ui-kit/src/session/SessionContext.tsx`の`requiredRole`を配列も受け付けるよう拡張（`AppFrame`の`role`プロップは`role="requester"`から`role={['requester', 'admin']}`に変更。U1の2画面構成のまま、**新しいS3・CloudFrontは作らない**、インフラのQ1に基づき管理者の画面はRequesterAppの中にメニューとして追加する）。`frontend/requester/src/pages/admin/`配下に`AccountsPage`・`AccountDetailPage`・`SettingsPage`・`AuditLogPage`・`DeleteAllPage`を追加し、`frontend/requester/src/App.tsx`にroute（`/admin/accounts`・`/admin/accounts/:accountId`・`/admin/settings`・`/admin/audit`・`/admin/delete`）を追加。`AppShell`（`frontend/ui-kit/src/AppShell.tsx`相当）に管理者のときだけメニュー項目を出す分岐を追加。`frontend/hunter/src/`・`frontend/requester/src/`の両方のログイン後の流れに、初回手続き（パスワード変更→同意〈ハンターのみ〉→従事者番号〈ハンターのみ〉）の画面遷移を追加。`frontend/requester/src/api.ts`・`frontend/hunter/src/api.ts`に対応するAPI呼び出し関数を追加。
-- [ ] Step 11 (Refactor): 共通化できる部分（初回手続きの画面遷移ロジックがhunter/requester両方にあるため、`ui-kit`に共通フックとして抽出できないか検討）を整理する。テストが通ったまま行う。
+- [x] Step 9 (Red): 新しい部品・画面のテストを先に書く: `frontend/ui-kit/src/components/`の`PasswordChangeForm`・`ConsentPanel`・`HunterNumberForm`・`AccountTable`・`AccountForm`・`TempPasswordPanel`・`SettingsForm`（書き込み対応に拡張）・`AuditTable`・`DeleteConfirm`・`DeleteProgress`の`.u4.test.tsx`。`frontend/ui-kit/src/session/roles.ts`・`SessionContext.tsx`の`requiredRole`を`Role | Role[]`に拡張するテスト（管理者が依頼元の画面にも入れるようにするため。後述）。
+- [x] Step 10 (Green): 上記の部品を実装する。`frontend/ui-kit/src/session/SessionContext.tsx`の`requiredRole`を配列も受け付けるよう拡張（`AppFrame`の`role`プロップは`role="requester"`から`role={['requester', 'admin']}`に変更。U1の2画面構成のまま、**新しいS3・CloudFrontは作らない**、インフラのQ1に基づき管理者の画面はRequesterAppの中にメニューとして追加する）。`frontend/requester/src/pages/admin/`配下に`AccountsPage`・`AccountDetailPage`・`SettingsPage`・`AuditLogPage`・`DeleteAllPage`を追加し、`frontend/requester/src/App.tsx`にroute（`/admin/accounts`・`/admin/accounts/:accountId`・`/admin/settings`・`/admin/audit`・`/admin/delete`）を追加。`AppShell`（`frontend/ui-kit/src/AppShell.tsx`相当）に管理者のときだけメニュー項目を出す分岐を追加。`frontend/hunter/src/`・`frontend/requester/src/`の両方のログイン後の流れに、初回手続き（パスワード変更→同意〈ハンターのみ〉→従事者番号〈ハンターのみ〉）の画面遷移を追加。`frontend/requester/src/api.ts`・`frontend/hunter/src/api.ts`に対応するAPI呼び出し関数を追加。
+- [x] Step 11 (Refactor): 共通化できる部分（初回手続きの画面遷移ロジックがhunter/requester両方にあるため、`ui-kit`に共通フックとして抽出できないか検討）を整理する。テストが通ったまま行う。
 
 ## 10. スクリプトの更新（BR11.11・US6.1）
 
-- [ ] Step 12: `scripts/create-account.ts`の`validateInput`から「U1ではadminのアカウントは作れません」という拒否（現在72〜73行目）を削除し、`role === 'admin'`を他の役割と同様に受け付ける。`createAccount`関数に、`role==='admin'`のときの`AdminCounter`の`if_not_exists`による+1（reliability-design.md §1の最初の管理者のロジック）を追加する。**スクリプトの既存の`mustChangePassword: false`の挙動は変えない**（スクリプトはU1からの開発者手元の手順であり、BR11.3のtriggerは管理者の画面のAPIだけを指すため）。テスト: `create-account.u4.test.ts`（`--role admin`のケース、AdminCounterの増加を確認）。
+- [x] Step 12: `scripts/create-account.ts`の`validateInput`から「U1ではadminのアカウントは作れません」という拒否（現在72〜73行目）を削除し、`role === 'admin'`を他の役割と同様に受け付ける。`createAccount`関数に、`role==='admin'`のときの`AdminCounter`の`if_not_exists`による+1（reliability-design.md §1の最初の管理者のロジック）を追加する。**スクリプトの既存の`mustChangePassword: false`の挙動は変えない**（スクリプトはU1からの開発者手元の手順であり、BR11.3のtriggerは管理者の画面のAPIだけを指すため）。テスト: `create-account.u4.test.ts`（`--role admin`のケース、AdminCounterの増加を確認）。
 
 ## 11. インフラ（CDK）
 
-- [ ] Step 13: `infra/lib/data-stack.ts`に`AdminCounter`（キーcounterKey）・`AuditEntries`（キーentryId、発生日時の索引、`RemovalPolicy.RETAIN`、TTLなし）の2つの新しい表を追加。`infra/lib/api-stack.ts`: `catalog`・`review`・`duplicate-detection`・`reporting`の4関数のtimeoutを15秒に統一（infrastructure-specification.md §1）。各関数に削除対象の表への`BatchWriteItem`権限を追加。`accounts`関数のIAMに`cognito-idp:AdminCreateUser`・`AdminSetUserPassword`・`AdminAddUserToGroup`権限と`AdminCounter`への読み書きを追加（`AdminUpdateUserAttributes`・`AdminDisableUser`などは**追加しない**。最小権限。U1のBR11.8の無効化はDynamoDB側だけで行うため）。`audit-log`関数（新規。128MB・10秒）を追加し、`AuditEntries`への読み書き権限、EventBridgeから`audit.recorded`を受けるルールを追加。新しいAPI Gatewayルート（§8の一覧）をすべて追加。テスト: `infra/test/stacks.u4.test.ts`（新規。4関数のtimeout=15秒、audit-log関数のメモリ/timeout、Cognito権限がaccounts関数だけに付いていること、AdminCounter/AuditEntriesの表の確認）。`stacks.u1.test.ts`の関数総数・ルート総数のアサーションを更新（11関数→12関数〈audit-log追加〉、ルート数の更新）。
+- [x] Step 13: `infra/lib/data-stack.ts`に`AdminCounter`（キーcounterKey）・`AuditEntries`（キーentryId、発生日時の索引、`RemovalPolicy.RETAIN`、TTLなし）の2つの新しい表を追加。`infra/lib/api-stack.ts`: `catalog`・`review`・`duplicate-detection`・`reporting`の4関数のtimeoutを15秒に統一（infrastructure-specification.md §1）。各関数に削除対象の表への`BatchWriteItem`権限を追加。`accounts`関数のIAMに`cognito-idp:AdminCreateUser`・`AdminSetUserPassword`・`AdminAddUserToGroup`権限と`AdminCounter`への読み書きを追加（`AdminUpdateUserAttributes`・`AdminDisableUser`などは**追加しない**。最小権限。U1のBR11.8の無効化はDynamoDB側だけで行うため）。`audit-log`関数（新規。128MB・10秒）を追加し、`AuditEntries`への読み書き権限、EventBridgeから`audit.recorded`を受けるルールを追加。新しいAPI Gatewayルート（§8の一覧）をすべて追加。テスト: `infra/test/stacks.u4.test.ts`（新規。4関数のtimeout=15秒、audit-log関数のメモリ/timeout、Cognito権限がaccounts関数だけに付いていること、AdminCounter/AuditEntriesの表の確認）。`stacks.u1.test.ts`の関数総数・ルート総数のアサーションを更新（11関数→12関数〈audit-log追加〉、ルート数の更新）。
 
 ## 12. 契約文書・スクリプト
 
-- [ ] Step 14: `contracts/openapi.yaml`にD-1〜D-7（functional-spec.md §7）を反映: 新しいルートをすべて追加、既存ルートへの403 PASSWORD_CHANGE_REQUIRED・422 LAST_ADMIN/CANNOT_DISABLE_SELFの追加。`contracts/asyncapi.yaml`に`audit.recorded`の知らせを追加。
+- [x] Step 14: `contracts/openapi.yaml`にD-1〜D-7（functional-spec.md §7）を反映: 新しいルートをすべて追加、既存ルートへの403 PASSWORD_CHANGE_REQUIRED・422 LAST_ADMIN/CANNOT_DISABLE_SELFの追加。`contracts/asyncapi.yaml`に`audit.recorded`の知らせを追加。
 
 ## 13. ドキュメント・traceability
 
-- [ ] Step 15: `code-summary.md`・`traceability.json`・`source-manifest.json`を作成する。§0で見つけた「audit.recordedが実際には送られていなかった」という前提の誤りと、その対応を正直に記録する。
+- [x] Step 15: `code-summary.md`・`traceability.json`・`source-manifest.json`を作成する。§0で見つけた「audit.recordedが実際には送られていなかった」という前提の誤りと、その対応を正直に記録する。
 
 ## テストの見込み（内訳）
 

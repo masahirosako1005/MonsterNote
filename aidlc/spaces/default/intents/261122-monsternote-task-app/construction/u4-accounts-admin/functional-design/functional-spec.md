@@ -101,11 +101,14 @@ U4 で、U1 のスクリプトによるアカウントの作成は**管理者の
 2. 報告の件数を数えて「報告 n 件と写真を削除します。よろしいですか？」（BR13.2。AC6.5.1）
    └ 「やめる」→ 何もしない（AC6.5.3）
 3. 「削除する」→ 部品ごとの入口を順に呼ぶ（BR13.1。Q2）
-   ① DELETE /v1/admin/catalog-data（一覧）
-   ② DELETE /v1/admin/review-data（確認の記録）
-   ③ DELETE /v1/admin/duplicate-data（索引と疑い）
-   ④ DELETE /v1/admin/detection-data（判別の結果）
-   ⑤ DELETE /v1/admin/report-data（報告と写真）
+   <!-- 訂正（Code Generation）: infrastructure-specification.md がこの5つをPOST・末尾reporting-dataで決めており、
+        実装（backend・CDK・frontend・テスト）もそちらで一貫している。この節の元の記述（DELETE・report-data）は
+        古い。食い違いは人に確認し、実装済みのPOST側に合わせてここを直した（d60e400a） -->
+   ① POST /v1/admin/catalog-data（一覧）
+   ② POST /v1/admin/review-data（確認の記録）
+   ③ POST /v1/admin/duplicate-data（索引と疑い）
+   ④ POST /v1/admin/detection-data（判別の結果）
+   ⑤ POST /v1/admin/reporting-data（報告と写真）
 4. 各入口は消した件数を返し、もう何も無くても 0 件で成功する（何度押しても同じ結果。BR13.1）
 5. 画面は、どこまで終わったかを出す。失敗したらその部品からやり直せる
 6. 部品ごとに audit.recorded（action=data.deleted、detail に件数）を送る（BR13.4）
@@ -241,6 +244,7 @@ U4 の設計で、約束や上流の文書と変える点。**約束の文書（
 | D-5 | 約束 C7（`GET /v1/admin/audit-entries`） | 行に `outcome`（成功・失敗）と `actorName` を返すと明記する。利用者の ID は返さない | 記録を読む人が「何が起きたか」を判断できるようにし、利用者の ID を画面に出さないため（Q6・BR12.3） |
 | D-6 | 約束 C15（`audit.recorded` の知らせ） | 知らせの中身に `actorName` と `outcome` を足す。`actorAccountId` と `occurredAt` は、知らせの共通の外側（contract-summary 2.4 の EventEnvelope）がすでに持っているため足さない | 操作の記録に「誰の名前で」「結果はどうだったか」を残すのに要る。受け手（AuditLog）が送り手に問い合わせて補う経路はない（レビュー R-03・R-09） |
 | D-7 | 約束 C1（`POST /v1/session`） | 仮のパスワードでも、証明と 3 つの印を返す形を保つ（認証のサービスの「新しいパスワードが必要」という応答は使わない） | 「仮のパスワードかどうか」は MonsterNote 自身が覚え、使えなくするのは BR11.4 の決まりで行う（レビュー R-01） |
+| D-8 | U1 の決まり（BR4.2。「依頼元以外403」） | `GET /v1/catalog/reports` を管理者にも開く（`requireRole(caller, 'requester', 'admin')`） | 「すべて削除」の確認画面（BR13.2・AC6.5.1）が「報告 n 件」の件数を見せる必要があり、この道以外に件数を読む手段がないため。Code Generation中に自己発見。人に確認のうえ修正（0ea1d331） |
 
 ## Assumptions & Open Questions
 

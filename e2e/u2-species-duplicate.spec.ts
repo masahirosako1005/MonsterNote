@@ -42,6 +42,11 @@ test('@u2 全身の写真の判別ができると、その種類を選んだ状�
     .setInputFiles({ name: 'body.png', mimeType: 'image/png', buffer: PNG });
   await expect(page.getByTestId('detection-result')).toContainText('イノシシ（92%）');
   await page.getByTestId('photo-next').click();
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  await page
+    .getByTestId('photo-input')
+    .setInputFiles({ name: 'tail.png', mimeType: 'image/png', buffer: PNG });
+  await page.getByTestId('photo-tail-next').click();
   await expect(page.getByTestId('species-boar')).toHaveAttribute('aria-checked', 'true');
   // 選び直せる
   await page.getByTestId('species-deer').click();
@@ -63,6 +68,11 @@ test('@u2 判別できなかったときは「手で選んでください」と�
     '判別できませんでした。手で選んでください',
   );
   await page.getByTestId('photo-next').click();
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  await page
+    .getByTestId('photo-input')
+    .setInputFiles({ name: 'tail.png', mimeType: 'image/png', buffer: PNG });
+  await page.getByTestId('photo-tail-next').click();
   await expect(page.getByTestId('species-boar')).toHaveAttribute('aria-checked', 'false');
 });
 
@@ -74,8 +84,15 @@ async function submitOneBoar(page: Page, hunter: string) {
     .setInputFiles({ name: 'body.png', mimeType: 'image/png', buffer: PNG });
   await expect(page.getByTestId('detection-result')).toBeVisible();
   await page.getByTestId('photo-next').click();
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  await page
+    .getByTestId('photo-input')
+    .setInputFiles({ name: 'tail.png', mimeType: 'image/png', buffer: PNG });
+  await page.getByTestId('photo-tail-next').click();
   await page.getByTestId('species-boar').click();
   await page.getByTestId('sex-male').click();
+  await page.getByTestId('age-class-adult').click();
+  await page.getByTestId('capture-method-trap').click();
   await page.getByTestId('choice-next').click();
   await expect(page.getByTestId('map-tiles')).toBeVisible();
   await page.getByTestId('submit-report').click();
@@ -96,8 +113,15 @@ test('@u2 近くで同じ種類の報告があると確認ダイアログが出�
     .setInputFiles({ name: 'body2.png', mimeType: 'image/png', buffer: PNG });
   await expect(page.getByTestId('detection-result')).toBeVisible();
   await page.getByTestId('photo-next').click();
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  await page
+    .getByTestId('photo-input')
+    .setInputFiles({ name: 'tail.png', mimeType: 'image/png', buffer: PNG });
+  await page.getByTestId('photo-tail-next').click();
   await page.getByTestId('species-boar').click();
   await page.getByTestId('sex-male').click();
+  await page.getByTestId('age-class-adult').click();
+  await page.getByTestId('capture-method-trap').click();
   await page.getByTestId('choice-next').click();
   await page.getByTestId('submit-report').click();
   await expect(page.getByRole('dialog')).toContainText('イノシシ');
@@ -112,8 +136,15 @@ test('@u2 対象地域の設定を読んで、地図の警告なしで報告で�
     .getByTestId('photo-input')
     .setInputFiles({ name: 'body.png', mimeType: 'image/png', buffer: PNG });
   await page.getByTestId('photo-next').click();
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  await page
+    .getByTestId('photo-input')
+    .setInputFiles({ name: 'tail.png', mimeType: 'image/png', buffer: PNG });
+  await page.getByTestId('photo-tail-next').click();
   await page.getByTestId('species-boar').click();
   await page.getByTestId('sex-male').click();
+  await page.getByTestId('age-class-adult').click();
+  await page.getByTestId('capture-method-trap').click();
   await page.getByTestId('choice-next').click();
   await expect(page.getByTestId('map-tiles')).toBeVisible();
   // 既定の地図の中心（日本のおおよその中心）は対象地域の中なので、警告は出ない

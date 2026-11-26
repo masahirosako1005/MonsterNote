@@ -89,7 +89,7 @@ flowchart TD
 | 無効化・有効化 | C1 `PUT /v1/admin/accounts/{id}/status` |
 | 設定の読み書き | C6 `GET /v1/admin/settings`、`PUT /v1/admin/settings` |
 | 操作の記録 | C7 `GET /v1/admin/audit-entries?cursor=` |
-| データの削除（5 つ） | C4・C3・C5・C17・C2 の `DELETE /v1/admin/*-data` |
+| データの削除（5 つ） | C4・C3・C5・C17・C2 の `POST /v1/admin/*-data`（訂正。Code Generation。infrastructure-specification.md・実装と合わせた。d60e400a） |
 
 ## 5. 入力の確かめ方
 

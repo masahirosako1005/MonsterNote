@@ -1,4 +1,4 @@
-// MonsterNote-Api-dev: HTTP API（JWT オーソライザー・流量・CORS）、関数 7 つ、EventBridge、アラーム 2 つと SNS。
+// MonsterNote-Api-dev: HTTP API（JWT オーソライザー・流量・CORS）、関数 12 個、EventBridge、アラーム（API 5xx 1 つ＋関数エラー、CloudWatch の 10 指標上限のため組分け）と SNS。
 // infrastructure-specification 2、monitoring-design、security-design NFR4.2〜NFR4.4、reliability-design。
 import { fileURLToPath } from 'node:url';
 import { Duration, Stack, type StackProps } from 'aws-cdk-lib';
@@ -83,29 +83,49 @@ export class ApiStack extends Stack {
       timeoutSec: 8,
       env: {
         ACCOUNTS_TABLE: tables.accounts.tableName,
+        ADMIN_COUNTER_TABLE: tables.adminCounter.tableName,
         USER_POOL_CLIENT_ID: props.auth.userPoolClient.userPoolClientId,
+        USER_POOL_ID: props.auth.userPool.userPoolId,
+        // U4（BR12.5）: アカウントの作成・再設定・無効化／有効化の操作の記録（audit.recorded）を送るため
+        EVENT_BUS_NAME: bus.eventBusName,
       },
     });
-    // U2: 設定の読み出し。API Gateway の道は持たず、Lambda の直接の呼び出しだけで受ける
+    // U4: 操作の記録の受け手と一覧（GET /v1/admin/audit-entries）
+    const auditLog = fn('AuditLog', 'audit-log', {
+      timeoutSec: 10,
+      env: {
+        AUDIT_ENTRIES_TABLE: tables.auditEntries.tableName,
+        // U4（BR11.4）: 仮のパスワードのままの確認（caller-status）のため、Accounts関数を呼ぶ
+        ACCOUNTS_FUNCTION_NAME: accounts.functionName,
+      },
+    });
+    // U2: 設定の読み出し。U4でPUT /v1/admin/settings（書き込み）も足す
     const settings = fn('Settings', 'settings', {
       timeoutSec: 8,
-      env: { SETTINGS_TABLE: tables.settings.tableName },
+      env: {
+        SETTINGS_TABLE: tables.settings.tableName,
+        EVENT_BUS_NAME: bus.eventBusName,
+        ACCOUNTS_FUNCTION_NAME: accounts.functionName,
+      },
     });
     // U2: 重複の判定。送信前のその場の呼び出し（C9）と report.saved の知らせの両方から呼ばれる
+    // U4: 時間切れを15秒に統一（削除の入口を足すため。performance-design.md §3）
     const duplicateDetection = fn('DuplicateDetection', 'duplicate-detection', {
       memory: 256,
-      timeoutSec: 10,
+      timeoutSec: 15,
       env: {
         REPORT_FOOTPRINTS_TABLE: tables.reportFootprints.tableName,
         DUPLICATE_SUSPICIONS_TABLE: tables.duplicateSuspicions.tableName,
         REVIEW_DECISIONS_TABLE: tables.reviewDecisions.tableName,
         SETTINGS_FUNCTION_NAME: settings.functionName,
+        EVENT_BUS_NAME: bus.eventBusName,
+        ACCOUNTS_FUNCTION_NAME: accounts.functionName,
       },
     });
     const reporting = fn('Reporting', 'reporting', {
       memory: 256,
-      // U2（performance-design §2）: 設定の読み出しと重複の問い合わせの分、8 秒 → 9 秒に引き上げる
-      timeoutSec: 9,
+      // U2（performance-design §2）: 8 秒 → 9 秒。U4: 削除の入口を足すため 15 秒に統一
+      timeoutSec: 15,
       env: {
         PHOTOS_TABLE: tables.photos.tableName,
         REPORTS_TABLE: tables.reports.tableName,
@@ -119,16 +139,23 @@ export class ApiStack extends Stack {
         DUPLICATE_DETECTION_FUNCTION_NAME: duplicateDetection.functionName,
       },
     });
+    // U4: 時間切れを15秒に統一（削除の入口を足すため）
     const review = fn('Review', 'review', {
-      timeoutSec: 8,
+      timeoutSec: 15,
       env: {
         REVIEW_DECISIONS_TABLE: tables.reviewDecisions.tableName,
         EVENT_BUS_NAME: bus.eventBusName,
+        ACCOUNTS_FUNCTION_NAME: accounts.functionName,
       },
     });
+    // U4: 時間切れを15秒に統一（削除の入口を足すため）。削除の記録のためEVENT_BUS_NAMEも足す
     const catalog = fn('Catalog', 'catalog', {
-      timeoutSec: 8,
-      env: { REPORT_LIST_ITEMS_TABLE: tables.reportListItems.tableName },
+      timeoutSec: 15,
+      env: {
+        REPORT_LIST_ITEMS_TABLE: tables.reportListItems.tableName,
+        EVENT_BUS_NAME: bus.eventBusName,
+        ACCOUNTS_FUNCTION_NAME: accounts.functionName,
+      },
     });
     // 知らせの受け手（時間切れ 10 秒）
     const reviewOnSaved = fn('ReviewOnSaved', 'review-on-saved', {
@@ -182,6 +209,7 @@ export class ApiStack extends Stack {
     );
     this.functions = {
       accounts,
+      auditLog,
       reporting,
       review,
       catalog,
@@ -195,7 +223,25 @@ export class ApiStack extends Stack {
     };
 
     // 関数ごとの IAM: 自分の表だけ（logical-components の分け方）
-    tables.accounts.grantReadData(accounts);
+    tables.accounts.grantReadWriteData(accounts);
+    tables.adminCounter.grantReadWriteData(accounts);
+    // U4（BR12.5）: アカウントの作成・再設定・無効化／有効化の操作の記録を送る
+    bus.grantPutEventsTo(accounts);
+    tables.auditEntries.grantReadWriteData(auditLog);
+    bus.grantPutEventsTo(auditLog);
+    // U4（BR11.2・BR11.3・BR11.9）: 最小権限。AdminCreateUser・AdminSetUserPassword・AdminAddUserToGroup
+    // だけを許す（AdminUpdateUserAttributes・AdminDisableUser は付与しない。無効化はDynamoDB側だけで行う）
+    accounts.addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          'cognito-idp:AdminCreateUser',
+          'cognito-idp:AdminSetUserPassword',
+          'cognito-idp:AdminAddUserToGroup',
+        ],
+        resources: [props.auth.userPool.userPoolArn],
+      }),
+    );
     for (const t of [tables.photos, tables.reports, tables.submissionKeys])
       t.grantReadWriteData(reporting);
     tables.detectionResults.grantReadWriteData(reporting);
@@ -206,6 +252,12 @@ export class ApiStack extends Stack {
     bus.grantPutEventsTo(reporting);
     // 部品の間の直接の呼び出し C10: Reporting だけが Accounts の関数を呼べる（NFR4.4）
     accounts.grantInvoke(reporting);
+    // U4（BR11.4）: 仮のパスワードのままかの確認（caller-status）のため、
+    // review・catalog・duplicate-detection・settings・audit-log もAccounts関数を呼べる
+    // （reporting はC10の呼び出しですでに許可済み）
+    for (const caller of [review, catalog, duplicateDetection, settings, auditLog]) {
+      accounts.grantInvoke(caller);
+    }
     // U2: Rekognition の DetectLabels だけを許す（リソースを絞れないため「*」。NFR5.11）
     reporting.addToRolePolicy(
       new PolicyStatement({
@@ -219,7 +271,8 @@ export class ApiStack extends Stack {
     settings.grantInvoke(duplicateDetection);
     // U2: 送信前の重複の問い合わせ（C9）は Reporting から DuplicateDetection への直接の呼び出し
     duplicateDetection.grantInvoke(reporting);
-    tables.settings.grantReadData(settings);
+    // U4: PUT /v1/admin/settings（書き込み）を足したため読み書きに引き上げる
+    tables.settings.grantReadWriteData(settings);
     tables.reportFootprints.grantReadWriteData(duplicateDetection);
     tables.duplicateSuspicions.grantReadWriteData(duplicateDetection);
     // U2（D-6・BR8.8）: GET /v1/duplicates/{reportId} が相手の報告の状態を読む
@@ -231,7 +284,8 @@ export class ApiStack extends Stack {
     tables.reportFootprints.grantReadWriteData(duplicateDetectionOnStatus);
     tables.reviewDecisions.grantReadWriteData(review);
     bus.grantPutEventsTo(review);
-    tables.reportListItems.grantReadData(catalog);
+    // U4: すべて削除の入口（BatchWriteItem）を足したため読み書きに引き上げる
+    tables.reportListItems.grantReadWriteData(catalog);
     tables.reviewDecisions.grantReadWriteData(reviewOnSaved);
     for (const consumer of [catalogOnSaved, catalogOnStatus])
       tables.reportListItems.grantReadWriteData(consumer);
@@ -275,6 +329,13 @@ export class ApiStack extends Stack {
         detailType: ['duplicate.suspected'],
       },
       targets: [new LambdaFunction(catalogOnStatus)],
+    });
+    // U4（BR12.5・NFR14.5）: 操作の記録。送り手は各部品（Accounts・Review・ReportCatalog・Reporting・
+    // DuplicateDetection・Settings）。detailTypeだけで絞り、送り手は区別しない
+    new Rule(this, 'AuditRecordedRule', {
+      eventBus: bus,
+      eventPattern: { detailType: ['audit.recorded'] },
+      targets: [new LambdaFunction(auditLog)],
     });
 
     // HTTP API
@@ -347,6 +408,28 @@ export class ApiStack extends Stack {
     // U2: 重複の疑いの相手の一覧（C5。担当は DuplicateDetection。BR8.9）
     route(HttpMethod.GET, '/v1/duplicates/{reportId}', duplicateDetection);
 
+    // U4: 初回の手続き（BR11.4〜BR11.7）
+    route(HttpMethod.PUT, '/v1/me/password', accounts);
+    route(HttpMethod.PUT, '/v1/me/consent', accounts);
+    route(HttpMethod.PUT, '/v1/me/hunter-number', accounts);
+    route(HttpMethod.GET, '/v1/me', accounts);
+    // U4: 管理者のアカウント管理（BR11.1〜BR11.3・BR11.9）
+    route(HttpMethod.GET, '/v1/admin/accounts', accounts);
+    route(HttpMethod.POST, '/v1/admin/accounts', accounts);
+    route(HttpMethod.PUT, '/v1/admin/accounts/{accountId}/status', accounts);
+    route(HttpMethod.POST, '/v1/admin/accounts/{accountId}/password-reset', accounts);
+    // U4: 設定の読み書き（UC25。BR9.2・BR9.4）
+    route(HttpMethod.GET, '/v1/admin/settings', settings);
+    route(HttpMethod.PUT, '/v1/admin/settings', settings);
+    // U4: 操作の記録の一覧（UC27。BR12.1）
+    route(HttpMethod.GET, '/v1/admin/audit-entries', auditLog);
+    // U4: 試験運用の終わりの削除（BR13.1。順番①〜⑤）
+    route(HttpMethod.POST, '/v1/admin/catalog-data', catalog);
+    route(HttpMethod.POST, '/v1/admin/review-data', review);
+    route(HttpMethod.POST, '/v1/admin/duplicate-data', duplicateDetection);
+    route(HttpMethod.POST, '/v1/admin/detection-data', reporting);
+    route(HttpMethod.POST, '/v1/admin/reporting-data', reporting);
+
     // 監視（monitoring-design）: アラーム 2 つと SNS のメール
     const topic = new Topic(this, 'AlarmTopic', { topicName: 'masahiro-sns-monsternote-alarm' });
     if (props.alarmEmail) topic.addSubscription(new EmailSubscription(props.alarmEmail));
@@ -372,38 +455,36 @@ export class ApiStack extends Stack {
       comparisonOperator: ComparisonOperator.GREATER_THAN_THRESHOLD,
       treatMissingData: TreatMissingData.NOT_BREACHING,
     });
-    // CloudWatch の数式は 1 つにつき最大 10 個の個別の指標までのため、関数が増えても壊れないよう
-    // 9 個ずつにまとめ、まとめた式どうしをさらに足し合わせる（U2 で関数が 11 個になった）
-    const MATH_EXPRESSION_METRIC_LIMIT = 9;
-    let nextMetricId = 0;
-    // 数式の入れ子すべてで、指標の ID（m0・m1…）が重ならないよう 1 つの採番を共有する
-    function sumMetrics(metrics: IMetric[]): IMetric {
-      if (metrics.length === 1) return metrics[0]!;
-      if (metrics.length <= MATH_EXPRESSION_METRIC_LIMIT) {
-        const using = Object.fromEntries(metrics.map((m) => [`m${nextMetricId++}`, m]));
-        return new MathExpression({
-          expression: Object.keys(using).join('+'),
-          usingMetrics: using,
-          period,
-        });
-      }
-      const batches: IMetric[] = [];
-      for (let i = 0; i < metrics.length; i += MATH_EXPRESSION_METRIC_LIMIT) {
-        batches.push(sumMetrics(metrics.slice(i, i + MATH_EXPRESSION_METRIC_LIMIT)));
-      }
-      return sumMetrics(batches);
-    }
+    // CloudWatch のアラームは、1 つのアラームで使える指標の合計が最大 10 個（数式を入れ子にしても
+    // 最終的には 1 つのアラームの指標一覧として平らに展開されるため、入れ子にしても回避できない。
+    // 関数が 12 個になった実機デプロイで実際に "Too many metrics in alarm, maximum is 10" で失敗して判明した）。
+    // そのため、関数を 9 個以下ずつの組に分け、組ごとに別のアラームを作る（同じ SNS トピックへ通知する）。
+    const LAMBDA_ERRORS_ALARM_GROUP_SIZE = 9;
     const fnList = Object.values(this.functions);
-    const lambdaErrors = new Alarm(this, 'LambdaErrorsAlarm', {
-      alarmName: 'masahiro-cloudwatch-monsternote-lambda-errors',
-      alarmDescription: '5 分間で全関数のエラーの合計が 3 回以上',
-      metric: sumMetrics(fnList.map((f) => f.metricErrors({ period, statistic: 'Sum' }))),
-      threshold: 3,
-      evaluationPeriods: 1,
-      comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-      treatMissingData: TreatMissingData.NOT_BREACHING,
-    });
-    for (const alarm of [api5xx, lambdaErrors]) alarm.addAlarmAction(new SnsAction(topic));
+    const lambdaErrorsAlarms = fnList
+      .reduce<IMetric[][]>((groups, fn, i) => {
+        const metric = fn.metricErrors({ period, statistic: 'Sum' });
+        const groupIndex = Math.floor(i / LAMBDA_ERRORS_ALARM_GROUP_SIZE);
+        (groups[groupIndex] ??= []).push(metric);
+        return groups;
+      }, [])
+      .map((group, i) => {
+        const using = Object.fromEntries(group.map((m, j) => [`m${j}`, m]));
+        return new Alarm(this, `LambdaErrorsAlarm${i}`, {
+          alarmName: `masahiro-cloudwatch-monsternote-lambda-errors-${i}`,
+          alarmDescription: `5 分間で関数グループ ${i} のエラーの合計が 3 回以上`,
+          metric: new MathExpression({
+            expression: Object.keys(using).join('+'),
+            usingMetrics: using,
+            period,
+          }),
+          threshold: 3,
+          evaluationPeriods: 1,
+          comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+          treatMissingData: TreatMissingData.NOT_BREACHING,
+        });
+      });
+    for (const alarm of [api5xx, ...lambdaErrorsAlarms]) alarm.addAlarmAction(new SnsAction(topic));
   }
 
   /** API の URL（末尾の / なし） */

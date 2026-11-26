@@ -147,19 +147,27 @@ describe('却下（PUT decision=rejected）', () => {
 });
 
 describe('取り消し（POST decision/undo）', () => {
-  it('本人が期限内なら確認中に戻し、review.status-changed（undone）を 1 回だけ試す', async () => {
+  it('本人が期限内なら確認中に戻し、review.status-changed（undone）とaudit.recordedを1回ずつ試す', async () => {
     const previous = decidedBy('rejected', 'requester-a');
     ddbMock.on(UpdateCommand).resolves({ Attributes: previous });
     const res = await undo(requesterClaims());
     expect(res.statusCode).toBe(200);
     expect(bodyOf(res)).toEqual({ reportId: 'report-1', status: 'checking' });
-    await vi.waitFor(() => expect(ebMock.commandCalls(PutEventsCommand)).toHaveLength(1));
+    // U4: review.status-changed（undone）とaudit.recordedの2件を、どちらも結果を待たず1回だけ試す
+    await vi.waitFor(() => expect(ebMock.commandCalls(PutEventsCommand)).toHaveLength(2));
     const envelope = JSON.parse(
       ebMock.commandCalls(PutEventsCommand)[0]?.args[0].input.Entries?.[0]?.Detail ?? '{}',
     );
     expect(envelope).toMatchObject({
       type: 'review.status-changed',
       data: { reportId: 'report-1', status: 'checking', previousStatus: 'rejected' },
+    });
+    const auditEnvelope = JSON.parse(
+      ebMock.commandCalls(PutEventsCommand)[1]?.args[0].input.Entries?.[0]?.Detail ?? '{}',
+    );
+    expect(auditEnvelope).toMatchObject({
+      type: 'audit.recorded',
+      data: { action: 'review.undone', targetType: 'report', targetId: 'report-1' },
     });
   });
 

@@ -46,8 +46,15 @@ async function submitOneReport(
     .setInputFiles({ name: photoName, mimeType: 'image/png', buffer: PNG });
   await expect(page.getByTestId('detection-result')).toBeVisible();
   await page.getByTestId('photo-next').click();
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  await page
+    .getByTestId('photo-input')
+    .setInputFiles({ name: 'tail.png', mimeType: 'image/png', buffer: PNG });
+  await page.getByTestId('photo-tail-next').click();
   await page.getByTestId(`species-${species}`).click();
   await page.getByTestId('sex-male').click();
+  await page.getByTestId('age-class-adult').click();
+  await page.getByTestId('capture-method-trap').click();
   await page.getByTestId('choice-next').click();
   await expect(page.getByTestId('map-tiles')).toBeVisible();
   await page.getByTestId('submit-report').click();
@@ -171,8 +178,15 @@ test('@u3 一覧を重複の疑いの印で絞り込める（BR4.5・BR7.1）', 
     .setInputFiles({ name: 'second.png', mimeType: 'image/png', buffer: PNG });
   await expect(page.getByTestId('detection-result')).toBeVisible();
   await page.getByTestId('photo-next').click();
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  await page
+    .getByTestId('photo-input')
+    .setInputFiles({ name: 'tail.png', mimeType: 'image/png', buffer: PNG });
+  await page.getByTestId('photo-tail-next').click();
   await page.getByTestId('species-boar').click();
   await page.getByTestId('sex-male').click();
+  await page.getByTestId('age-class-adult').click();
+  await page.getByTestId('capture-method-trap').click();
   await page.getByTestId('choice-next').click();
   await page.getByTestId('submit-report').click();
   await expect(page.getByRole('dialog')).toContainText('イノシシ');

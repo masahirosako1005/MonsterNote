@@ -8,9 +8,14 @@ import {
   QueryCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
+import { InvokeCommand, LambdaClient, type InvokeCommandOutput } from '@aws-sdk/client-lambda';
 import { apiEvent, busEvent, requesterClaims } from '../../test/helpers/events';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
+const lambdaMock = mockClient(LambdaClient);
+
+const payload = (o: unknown) =>
+  new TextEncoder().encode(JSON.stringify(o)) as unknown as InvokeCommandOutput['Payload'];
 
 const ENV = {
   AWS_REGION: 'ap-northeast-1',
@@ -18,10 +23,15 @@ const ENV = {
   AWS_SECRET_ACCESS_KEY: 'test',
   REPORT_LIST_ITEMS_TABLE: 'ReportListItems',
   PROCESSED_EVENTS_TABLE: 'ProcessedEvents',
+  // U4: すべて削除・mustChangePasswordゲートを足したことに伴う追加の環境変数
+  EVENT_BUS_NAME: 'monsternote-dev',
+  ACCOUNTS_FUNCTION_NAME: 'accounts-fn',
 };
 
 beforeEach(() => {
   ddbMock.reset();
+  lambdaMock.reset();
+  lambdaMock.on(InvokeCommand).resolves({ Payload: payload({ mustChangePassword: false }) });
   for (const [k, v] of Object.entries(ENV)) vi.stubEnv(k, v);
   vi.resetModules();
 });

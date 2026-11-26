@@ -14,6 +14,20 @@
 # 行に location（D-2）・daysSinceSubmitted・waitingOverSevenDays（BR4.9）を足した。GET /v1/catalog/reports に
 # status・flag の絞り込みと、全件数の totalCountHasMore（D-1）を足した。decidedByName は利用者の ID の形を
 # 「依頼元の担当者」に置き換えて返す（D-4）。
+# U4 での変更（D-1〜D-7。functional-spec.md §7）:
+#   - GET /v1/me・PUT /v1/me/password・PUT /v1/me/consent・PUT /v1/me/hunter-number（新規。初回の手続き。UC21）
+#   - GET/POST /v1/admin/accounts・PUT /v1/admin/accounts/{accountId}/status・
+#     POST /v1/admin/accounts/{accountId}/password-reset（新規。アカウント管理。US6.1〜US6.3）
+#   - GET/PUT /v1/admin/settings（新規。重複の基準と対象地域の変更。US6.4）
+#   - GET /v1/admin/audit-entries（新規。操作の記録。US6.6）
+#   - POST /v1/admin/catalog-data・review-data・duplicate-data・detection-data・reporting-data（新規。
+#     試験運用の終わりのデータ削除。US6.5。D-1の訂正: functional-spec.md 原案の DELETE・report-data ではなく、
+#     infrastructure-specification.md・実装と合わせて POST・reporting-data とした。d60e400a）
+#   - D-2: PUT /v1/admin/accounts/{accountId}/status に 422 LAST_ADMIN・422 CANNOT_DISABLE_SELF を足した
+#   - D-3: PUT /v1/me/password・GET /v1/me 以外のすべての道に 403 PASSWORD_CHANGE_REQUIRED を足した（仮のパスワードのまま）
+#   - D-4: GET /v1/admin/accounts の行に role・status を含む（BR11.9 の判定に要る）
+#   - D-5: GET /v1/admin/audit-entries の行に outcome・actorName を含む（利用者の ID は返さない）
+#   - D-7: POST /v1/session は仮のパスワードでも証明と 3 つの印を返す形を保つ（LoginResponse は変更なし）
 openapi: 3.0.3
 info:
   title: MonsterNote API
@@ -343,7 +357,9 @@ paths:
   /v1/catalog/reports:
     get:
       tags: [ReportCatalog]
-      summary: すべての報告の一覧（依頼元。新しい順・50 件。絞り込み可。BR4.2・BR4.4・BR4.5）
+      summary: >-
+        すべての報告の一覧（依頼元。新しい順・50 件。絞り込み可。BR4.2・BR4.4・BR4.5）。
+        U4（D-8）: 「すべて削除」の確認画面が件数を見せるため、管理者も呼べる
       parameters:
         - { name: cursor, in: query, required: false, schema: { type: string } }
         - name: status
@@ -378,6 +394,316 @@ paths:
               schema: { $ref: '#/components/schemas/ListPage' }
         '400': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
+  /v1/me:
+    get:
+      tags: [Accounts]
+      summary: U4（新規）。自分のアカウント（役割・表示名・初回の手続きの状態）。UC21・BR11.7
+      responses:
+        '200':
+          description: 自分のアカウント
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        '401': { $ref: '#/components/responses/Error' }
+  /v1/me/password:
+    put:
+      tags: [Accounts]
+      summary: U4（新規）。パスワードの変更（8 文字以上・英字と数字。BR11.4）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, format: password }
+      responses:
+        '204': { description: 変えた（mustChangePassword が false になる） }
+        '401': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '422':
+          description: VALIDATION_FAILED（8 文字未満・英字か数字のどちらかが無い。BR11.4）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /v1/me/consent:
+    put:
+      tags: [Accounts]
+      summary: U4（新規）。同意する・しない（ハンター。BR11.5）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [consented]
+              properties:
+                consented: { type: boolean }
+      responses:
+        '204': { description: 記録した }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+  /v1/me/hunter-number:
+    put:
+      tags: [Accounts]
+      summary: U4（新規）。従事者番号の登録（ハンター。数字 1〜20 桁。BR11.6）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hunterNumber]
+              properties:
+                hunterNumber: { type: string }
+      responses:
+        '204': { description: 登録した }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+  /v1/admin/accounts:
+    get:
+      tags: [Accounts]
+      summary: U4（新規）。アカウントの一覧（管理者だけ。D-4・US6.1）
+      responses:
+        '200':
+          description: 一覧。各行は role・status を含む（有効な管理者が 1 人だけかの判定に要る。BR11.9）
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AdminAccountRow' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Accounts]
+      summary: U4（新規）。アカウントの作成。仮のパスワードを 1 回だけ返す（管理者だけ。BR11.1〜BR11.3）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role, loginId, displayName]
+              properties:
+                role: { type: string, enum: [hunter, requester, admin] }
+                loginId: { type: string, minLength: 3, maxLength: 32 }
+                displayName: { type: string, minLength: 1, maxLength: 50 }
+                organization:
+                  type: string
+                  enum: [municipality, hunters-association]
+                  description: role=requester のとき必須
+      responses:
+        '200':
+          description: 作成した。仮のパスワードはこの応答にしか入らない（BR11.3）
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, temporaryPassword]
+                properties:
+                  accountId: { type: string }
+                  temporaryPassword: { type: string }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409':
+          description: LOGIN_ID_TAKEN（この ID はすでに使われている）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: VALIDATION_FAILED（role・loginId・displayName の形、role=requester で organization が無い）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /v1/admin/accounts/{accountId}/status:
+    put:
+      tags: [Accounts]
+      summary: U4（新規）。無効化・有効化（管理者だけ。D-2・BR11.9・US6.3）
+      parameters:
+        - { name: accountId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [active, disabled] }
+      responses:
+        '204': { description: 変えた }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409':
+          description: ALREADY_DISABLED（すでに無効なアカウントの無効化など）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: >-
+            D-2（新規）: CANNOT_DISABLE_SELF（自分自身は無効にできない）、または
+            LAST_ADMIN（有効な管理者が自分だけで、無効にできない。BR11.9）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /v1/admin/accounts/{accountId}/password-reset:
+    post:
+      tags: [Accounts]
+      summary: U4（新規）。パスワードの再設定。新しい仮のパスワードを 1 回だけ返す（管理者だけ。US6.2）
+      parameters:
+        - { name: accountId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: 再設定した（mustChangePassword が true に戻る）
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, temporaryPassword]
+                properties:
+                  accountId: { type: string }
+                  temporaryPassword: { type: string }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+  /v1/admin/settings:
+    get:
+      tags: [Settings]
+      summary: U4（新規）。重複の基準と対象地域（管理者だけ。US6.4）
+      responses:
+        '200':
+          description: 設定（まだ無ければ既定値。BR9.3）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminSettings' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+    put:
+      tags: [Settings]
+      summary: U4（新規）。設定の変更（距離 1 m 以上・時間 1 時間以上・半径 0 より大。管理者だけ。BR9.2・BR9.4）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                [
+                  duplicateDistanceMeters,
+                  duplicateWindowHours,
+                  targetAreaNorth,
+                  targetAreaSouth,
+                  targetAreaEast,
+                  targetAreaWest,
+                ]
+              properties:
+                duplicateDistanceMeters: { type: number, exclusiveMinimum: 0 }
+                duplicateWindowHours: { type: number, exclusiveMinimum: 0 }
+                targetAreaNorth: { type: number, minimum: -90, maximum: 90 }
+                targetAreaSouth: { type: number, minimum: -90, maximum: 90 }
+                targetAreaEast: { type: number, minimum: -180, maximum: 180 }
+                targetAreaWest: { type: number, minimum: -180, maximum: 180 }
+      responses:
+        '204': { description: 変えた（updatedByAccountId・updatedAt を記録する。BR9.4） }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '422':
+          description: VALIDATION_FAILED（範囲外。AC6.4.3。north<=south など）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /v1/admin/audit-entries:
+    get:
+      tags: [AuditLog]
+      summary: U4（新規）。操作の記録（管理者だけ。新しい順・50 件。D-5・BR12.1・BR12.3・US6.6）
+      parameters:
+        - { name: cursor, in: query, required: false, schema: { type: string } }
+      responses:
+        '200':
+          description: 行（利用者の ID は含まず actorName を返す。D-5・AC6.6.3）と次のページの位置
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  items:
+                    type: array
+                    maxItems: 50
+                    items: { $ref: '#/components/schemas/AuditEntry' }
+                  nextCursor: { type: string, nullable: true }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /v1/admin/catalog-data:
+    post:
+      tags: [ReportCatalog]
+      summary: >-
+        U4（新規）。一覧をすべて消す（管理者だけ。BR13.1 の順番①。US6.5。
+        D-1の訂正: functional-spec.md 原案は DELETE・report-data だったが、実装に合わせ POST・reporting-data とした）
+      responses:
+        '200':
+          description: 消した件数（0 件でも成功。何度呼んでも同じ結果）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeletedCount' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /v1/admin/review-data:
+    post:
+      tags: [Review]
+      summary: U4（新規）。確認の記録をすべて消す（管理者だけ。BR13.1 の順番②。US6.5）
+      responses:
+        '200':
+          description: 消した件数
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeletedCount' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /v1/admin/duplicate-data:
+    post:
+      tags: [DuplicateDetection]
+      summary: U4（新規）。索引と疑いをすべて消す（管理者だけ。BR13.1 の順番③。US6.5）
+      responses:
+        '200':
+          description: 消した件数（ReportFootprints・DuplicateSuspicions の合計）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeletedCount' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /v1/admin/detection-data:
+    post:
+      tags: [Reporting]
+      summary: U4（新規）。判別の結果をすべて消す（管理者だけ。BR13.1 の順番④。US6.5）
+      responses:
+        '200':
+          description: 消した件数
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeletedCount' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+  /v1/admin/reporting-data:
+    post:
+      tags: [Reporting]
+      summary: >-
+        U4（新規）。報告と写真（S3 の実体も）をすべて消す（管理者だけ。BR13.1 の順番⑤・最後。US6.5）
+      responses:
+        '200':
+          description: 消した件数（Reports の件数。写真は S3 から先に消す）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeletedCount' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
 components:
   securitySchemes:
     bearerAuth:
@@ -387,7 +713,10 @@ components:
       description: Accounts が発行した ID トークン（sub・cognito:groups・name）
   responses:
     Error:
-      description: 共通のエラーの形（contract-summary 2.2）。応答のヘッダー x-request-id が問い合わせ番号
+      description: >-
+        共通のエラーの形（contract-summary 2.2）。応答のヘッダー x-request-id が問い合わせ番号。
+        U4（D-3）: PUT /v1/me/password・GET /v1/me 以外のすべての道は、仮のパスワードのままの利用者に
+        403 PASSWORD_CHANGE_REQUIRED を返しうる（BR11.4）
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
@@ -434,6 +763,73 @@ components:
             mustChangePassword: { type: boolean }
             consentRequired: { type: boolean }
             hunterNumberRequired: { type: boolean }
+    Me:
+      type: object
+      description: U4（新規）。GET /v1/me の応答（UC21）
+      required:
+        [accountId, role, displayName, mustChangePassword, consentRequired, hunterNumberRequired]
+      properties:
+        accountId: { type: string }
+        role: { type: string, enum: [hunter, requester, admin] }
+        displayName: { type: string }
+        mustChangePassword: { type: boolean }
+        consentRequired: { type: boolean, description: role=hunter かつ未同意のときだけ true }
+        hunterNumberRequired: { type: boolean, description: role=hunter かつ未登録のときだけ true }
+    AdminAccountRow:
+      type: object
+      description: U4（新規）。GET /v1/admin/accounts の行（D-4）
+      required: [accountId, loginId, displayName, role, status]
+      properties:
+        accountId: { type: string }
+        loginId: { type: string }
+        displayName: { type: string }
+        role: { type: string, enum: [hunter, requester, admin] }
+        status: { type: string, enum: [active, disabled] }
+        organization: { type: string, enum: [municipality, hunters-association] }
+    AdminSettings:
+      type: object
+      description: U4（新規）。GET/PUT /v1/admin/settings（U2 の Settings の管理者向けの形。US6.4）
+      required:
+        [
+          duplicateDistanceMeters,
+          duplicateWindowHours,
+          targetAreaNorth,
+          targetAreaSouth,
+          targetAreaEast,
+          targetAreaWest,
+        ]
+      properties:
+        duplicateDistanceMeters: { type: number }
+        duplicateWindowHours: { type: number }
+        targetAreaNorth: { type: number }
+        targetAreaSouth: { type: number }
+        targetAreaEast: { type: number }
+        targetAreaWest: { type: number }
+        updatedByAccountId: { type: string }
+        updatedAt: { type: string, format: date-time }
+    AuditEntry:
+      type: object
+      description: U4（新規）。GET /v1/admin/audit-entries の行（D-5・BR12.3）。利用者の ID は含まない
+      required: [entryId, occurredAt, action, targetType, outcome]
+      properties:
+        entryId: { type: string }
+        occurredAt: { type: string, format: date-time }
+        actorName:
+          type: string
+          description: 操作した人の表示名（無ければ役割の呼び名。利用者の ID は返さない。BR12.3）
+        action: { type: string, example: review.approved }
+        targetType: { type: string, enum: [report, account, settings, data] }
+        targetId: { type: string }
+        outcome: { type: string, enum: [succeeded, failed] }
+        detail:
+          type: object
+          description: 件数など、ID 以外に必要な最小限の値だけ（BR12.3。中身・パスワード・理由の文は入らない）
+    DeletedCount:
+      type: object
+      description: U4（新規）。すべて削除の各入口の応答（BR13.1・BR13.4）
+      required: [deletedCount]
+      properties:
+        deletedCount: { type: integer, minimum: 0 }
     GeoPoint:
       type: object
       required: [lat, lng]

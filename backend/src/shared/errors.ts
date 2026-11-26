@@ -39,6 +39,8 @@ export const errors = {
   unauthenticated: (message = 'ログインしてください') =>
     new AppError(401, 'UNAUTHENTICATED', message),
   forbidden: (message = 'この操作はできません') => new AppError(403, 'FORBIDDEN', message),
+  passwordChangeRequired: () =>
+    new AppError(403, 'PASSWORD_CHANGE_REQUIRED', 'パスワードを変更してください（BR11.4）'),
   notFound: (message = '見つかりません', code = 'NOT_FOUND') => new AppError(404, code, message),
   conflict: (code: string, message: string, conflict: Record<string, unknown>) =>
     new AppError(409, code, message, undefined, conflict),

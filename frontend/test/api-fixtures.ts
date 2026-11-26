@@ -39,6 +39,17 @@ export function sessionHandlers(role: 'hunter' | 'requester', displayName = '利
       });
     }),
     http.delete(`${API}/v1/session`, () => new HttpResponse(null, { status: 204 })),
+    // U4: ログイン直後の初回の手続きの確認（BR11.7）。既定ではすべて済んでいる扱いにする
+    http.get(`${API}/v1/me`, () =>
+      HttpResponse.json({
+        accountId: `${role}-a`,
+        role,
+        displayName,
+        mustChangePassword: false,
+        consentRequired: false,
+        hunterNumberRequired: false,
+      }),
+    ),
   ];
 }
 

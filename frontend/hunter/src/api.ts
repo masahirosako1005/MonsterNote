@@ -2,7 +2,7 @@
 import { ApiError, NETWORK_ERROR_MESSAGE, type ApiClient } from '@ui-kit/api/client';
 import type { GeoPoint } from '@ui-kit/components/LocationGate';
 import type { ReportListRow } from '@ui-kit/components/ReportList';
-import type { Sex, Species } from '@ui-kit/labels';
+import type { AgeClass, CaptureMethod, Sex, Species } from '@ui-kit/labels';
 
 interface PhotoTicket {
   photoId: string;
@@ -47,14 +47,6 @@ export async function uploadPhoto(
   return { photoId: ticket.photoId, detection: completed.detection };
 }
 
-/** U1 からの呼び出し元に向けた薄い別名（全身の写真専用） */
-export async function uploadBodyPhoto(
-  api: ApiClient,
-  photo: Blob,
-): Promise<{ photoId: string; detection?: DetectionResultView }> {
-  return uploadPhoto(api, photo, 'body');
-}
-
 export interface DuplicateMatchView {
   species: string;
   capturedAt: string;
@@ -64,9 +56,19 @@ export interface DuplicateMatchView {
 export interface SubmitInput {
   submissionKey: string;
   photoId: string;
+  // U2（新規。Build and Testで発見: バックエンドは必須だが画面で一度も集めていなかった）
+  tailPhotoId: string;
+  /** クマで撮れたときだけ（BR2.17・BR2.18） */
+  chestPhotoId?: string;
+  chestPhotoMissing?: boolean;
   species: Species;
   sex: Sex;
+  ageClass: AgeClass;
+  captureMethod: CaptureMethod;
+  capturedAt: string;
+  capturedAtSource: 'exif' | 'manual';
   location: GeoPoint;
+  locationSource: 'exif' | 'manual';
   /** 送信前の重複の知らせで「別の個体なので送る」を選んだあとの送り直し（BR7.2） */
   confirmedNotDuplicate?: boolean;
 }
@@ -91,10 +93,22 @@ export async function submitReport(
 ): Promise<string> {
   const body = {
     submissionKey: input.submissionKey,
-    photos: { body: input.photoId },
+    photos: {
+      body: input.photoId,
+      tail: input.tailPhotoId,
+      ...(input.chestPhotoId ? { chest: input.chestPhotoId } : {}),
+    },
+    ...(input.chestPhotoMissing !== undefined
+      ? { chestPhotoMissing: input.chestPhotoMissing }
+      : {}),
+    capturedAt: input.capturedAt,
+    capturedAtSource: input.capturedAtSource,
     location: input.location,
+    locationSource: input.locationSource,
     species: input.species,
     sex: input.sex,
+    ageClass: input.ageClass,
+    captureMethod: input.captureMethod,
     confirmedNotDuplicate: input.confirmedNotDuplicate === true,
   };
   for (let attempt = 0; ; attempt++) {

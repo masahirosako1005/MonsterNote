@@ -104,11 +104,38 @@ async function waitForStatus(env: SmokeEnv, token: string, reportId: string, sta
   throw new Error(`10 秒以内に一覧が「${status}」になりませんでした`);
 }
 
+async function uploadPhoto(env: SmokeEnv, hunterToken: string, kind: 'body' | 'tail') {
+  const ticket = await api<{
+    photoId: string;
+    uploadUrl: string;
+    uploadFields: Record<string, string>;
+  }>(env.API_URL, 'POST', '/v1/photos', hunterToken, {
+    kind,
+    contentType: 'image/jpeg',
+    sizeBytes: JPEG.length,
+  });
+  const form = new FormData();
+  for (const [k, v] of Object.entries(ticket.uploadFields)) form.append(k, v);
+  form.append('file', new Blob([JPEG], { type: 'image/jpeg' }));
+  const upload = await fetch(ticket.uploadUrl, {
+    method: 'POST',
+    body: form,
+    headers: { origin: env.HUNTER_URL.replace(/\/+$/, '') },
+  });
+  if (!upload.ok) throw new Error(`S3 への POST → ${upload.status} ${await upload.text()}`);
+  if (!upload.headers.get('access-control-allow-origin')) {
+    throw new Error('S3 の応答に CORS のヘッダーがありません');
+  }
+  await api(env.API_URL, 'POST', `/v1/photos/${ticket.photoId}/complete`, hunterToken);
+  return ticket.photoId;
+}
+
 async function main() {
   const env = loadEnv();
   let hunterToken = '';
   let requesterToken = '';
   let photoId = '';
+  let tailPhotoId = '';
   let reportId = '';
 
   await step(1, '2 つの画面と config.json が開ける', async () => {
@@ -134,41 +161,25 @@ async function main() {
 
   await step(
     3,
-    '写真を受け付け、S3 に署名付きの POST で送り、完了を知らせる（CORS を含む）',
+    '写真（全身・尻尾）を受け付け、S3 に署名付きの POST で送り、完了を知らせる（CORS を含む）',
     async () => {
-      const ticket = await api<{
-        photoId: string;
-        uploadUrl: string;
-        uploadFields: Record<string, string>;
-      }>(env.API_URL, 'POST', '/v1/photos', hunterToken, {
-        kind: 'body',
-        contentType: 'image/jpeg',
-        sizeBytes: JPEG.length,
-      });
-      photoId = ticket.photoId;
-      const form = new FormData();
-      for (const [k, v] of Object.entries(ticket.uploadFields)) form.append(k, v);
-      form.append('file', new Blob([JPEG], { type: 'image/jpeg' }));
-      const upload = await fetch(ticket.uploadUrl, {
-        method: 'POST',
-        body: form,
-        headers: { origin: env.HUNTER_URL.replace(/\/+$/, '') },
-      });
-      if (!upload.ok) throw new Error(`S3 への POST → ${upload.status} ${await upload.text()}`);
-      if (!upload.headers.get('access-control-allow-origin')) {
-        throw new Error('S3 の応答に CORS のヘッダーがありません');
-      }
-      await api(env.API_URL, 'POST', `/v1/photos/${photoId}/complete`, hunterToken);
+      photoId = await uploadPhoto(env, hunterToken, 'body');
+      tailPhotoId = await uploadPhoto(env, hunterToken, 'tail');
     },
   );
 
   await step(4, '報告を送れる', async () => {
     const res = await api<{ reportId: string }>(env.API_URL, 'POST', '/v1/reports', hunterToken, {
       submissionKey: `smoke-${randomUUID()}`,
-      photos: { body: photoId },
+      photos: { body: photoId, tail: tailPhotoId },
       location: { lat: 35.0, lng: 135.0 },
+      locationSource: 'manual',
+      capturedAt: new Date().toISOString(),
+      capturedAtSource: 'manual',
       species: 'deer',
       sex: 'unknown',
+      ageClass: 'adult',
+      captureMethod: 'trap',
     });
     reportId = res.reportId;
   });

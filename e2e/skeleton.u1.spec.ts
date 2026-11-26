@@ -43,8 +43,15 @@ async function reportOne(page: Page) {
   // U2: アップロードの完了で判別の結果（またはできなかった旨）を見せてから次へ進む（BR6.2〜BR6.4）
   await expect(page.getByTestId('detection-result')).toBeVisible();
   await page.getByTestId('photo-next').click();
+  // U2（新規。Build and Testで発見）: 尻尾の写真（必須）
+  await page
+    .getByTestId('photo-input')
+    .setInputFiles({ name: 'tail.png', mimeType: 'image/png', buffer: PNG });
+  await page.getByTestId('photo-tail-next').click();
   await page.getByTestId('species-boar').click();
   await page.getByTestId('sex-male').click();
+  await page.getByTestId('age-class-adult').click();
+  await page.getByTestId('capture-method-trap').click();
   await page.getByTestId('choice-next').click();
   // U2: 位置は地図（MapPicker）で指す
   await expect(page.getByTestId('map-tiles')).toBeVisible();
@@ -79,7 +86,8 @@ test('@u1 ハンターが写真 1 枚で報告し、依頼元が承認すると�
 
 test('@u1 ハンターは依頼元の画面にも一覧の API にも入れない', async ({ page, request }) => {
   await login(page, REQUESTER, 'hunter01');
-  await expect(page.getByRole('alert')).toContainText('依頼元の方だけ');
+  // U4: 管理者も依頼元の画面に入れるようになったため文言が変わった（session.ts のロールメッセージ）
+  await expect(page.getByRole('alert')).toContainText('依頼元・管理者の方だけ');
   const res = await request.get(`${API}/v1/catalog/reports`, {
     headers: { authorization: 'Bearer token-hunter-a' },
   });

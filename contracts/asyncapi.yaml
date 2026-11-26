@@ -3,6 +3,10 @@
 # detail は EventEnvelope（reliability-design）。受け手は eventId で 2 回目を無視する。
 # U2 での変更: report.saved・review.status-changed の受け手に DuplicateDetection を足した（ADR-003）。
 # duplicate.suspected（C14）を新規に足した。manualEntry は U2 で実際に true になりうる（BR2.12）。
+# U4 での変更: audit.recorded（C15。新規）を足した。送り手は各部品（Accounts・Reporting・Review・
+# ReportCatalog・DuplicateDetection・Settings）、受け手は AuditLog だけ（detail-type だけで絞り、送り手は
+# 区別しない）。D-6: detail に actorName・outcome を足す（actorAccountId・occurredAt は EventEnvelope が
+# すでに持つため足さない）。
 asyncapi: 2.6.0
 info:
   title: MonsterNote events
@@ -106,6 +110,45 @@ channels:
                         type: string,
                         enum: [place-time, photo, moon-ring],
                         description: U2 は place-time だけ（Q1）,
+                      }
+  audit.recorded:
+    description: >
+      C15（U4・新規）。操作の記録（送り手は各部品 = source monsternote.<部品の名前>）。
+      受け手は AuditLog だけ。同じ eventId を 2 回受けても 1 件しか作らない（BR12.2）。
+      report.submitted・review.approved・review.rejected・review.undone・duplicate.suspected・
+      account.created・account.password-reset・account.disabled・account.enabled・settings.updated・
+      data.deleted のいずれかの操作ごとに 1 回送る（BR12.5）
+    subscribe:
+      message:
+        payload:
+          allOf:
+            - $ref: '#/components/schemas/EventEnvelope'
+            - type: object
+              properties:
+                data:
+                  type: object
+                  required: [action, targetType, outcome]
+                  properties:
+                    actorAccountId:
+                      {
+                        type: string,
+                        description: EventEnvelope.actorAccountId と同じ値（受け手は画面に出さない。BR12.3）,
+                      }
+                    actorName:
+                      {
+                        type: string,
+                        description: D-6（新規）。操作した人の表示名（無ければ役割の呼び名）,
+                      }
+                    action: { type: string, example: review.approved }
+                    targetType: { type: string, enum: [report, account, settings, data] }
+                    targetId: { type: string }
+                    outcome: { type: string, enum: [succeeded, failed], description: D-6（新規） }
+                    detail:
+                      {
+                        type: object,
+                        description:
+                          件数など、ID 以外に必要な最小限の値だけ（BR12.3。パスワード・写真・
+                          報告の中身・却下の理由の文は入れない）,
                       }
 components:
   schemas:

@@ -1,10 +1,12 @@
-// DuplicateDetection の関数の入口: API の道（C5 GET /v1/duplicates/{reportId}）と、
+// DuplicateDetection の関数の入口: API の道（C5 GET /v1/duplicates/{reportId}、U4ですべて削除を足す）と、
 // Reporting からの内部の直接の呼び出し（C9 POST /internal/v1/duplicate-checks）を見分ける。
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { createDuplicateRepository } from '../duplicate-detection/repository';
 import { createDuplicateListRoutes } from '../duplicate-detection/list';
+import { createDeleteAllRoute } from '../duplicate-detection/delete-all';
 import {
   checkDuplicate,
   isDuplicateCheckRequest,
@@ -17,16 +19,22 @@ import { requireEnv } from '../shared/env';
 import { createHttpHandler, type HttpEvent } from '../shared/http';
 import { componentIdentity, invokeInternal } from '../shared/internal-invoke';
 import { createLogger } from '../shared/logger';
+import { createRemotePasswordGate } from '../shared/password-gate-client';
 
 const logger = createLogger('duplicate-detection');
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const footprintsTable = requireEnv('REPORT_FOOTPRINTS_TABLE');
+const suspicionsTable = requireEnv('DUPLICATE_SUSPICIONS_TABLE');
 const repo = createDuplicateRepository(ddb, {
-  footprints: requireEnv('REPORT_FOOTPRINTS_TABLE'),
-  suspicions: requireEnv('DUPLICATE_SUSPICIONS_TABLE'),
+  footprints: footprintsTable,
+  suspicions: suspicionsTable,
 });
 const reviewRepo = createReviewRepository(ddb, requireEnv('REVIEW_DECISIONS_TABLE'));
 const lambda = new LambdaClient({});
 const settingsFunctionName = requireEnv('SETTINGS_FUNCTION_NAME');
+const accountsFunctionName = requireEnv('ACCOUNTS_FUNCTION_NAME');
+const eventBridge = new EventBridgeClient({});
+const busName = requireEnv('EVENT_BUS_NAME');
 
 /** ADR-011 ②: 部品の身元の証明で Settings を読む（送信前・保存後のどちらの判定でも同じ） */
 export async function readSettingsAsComponent(): Promise<SettingRecord> {
@@ -37,11 +45,22 @@ export async function readSettingsAsComponent(): Promise<SettingRecord> {
 }
 
 const http = createHttpHandler(
-  createDuplicateListRoutes({
-    repo,
-    getMatchedStatus: async (reportId) => (await reviewRepo.get(reportId))?.status ?? 'checking',
-  }),
+  {
+    ...createDuplicateListRoutes({
+      repo,
+      getMatchedStatus: async (reportId) => (await reviewRepo.get(reportId))?.status ?? 'checking',
+    }),
+    'POST /v1/admin/duplicate-data': createDeleteAllRoute({
+      ddb,
+      footprintsTable,
+      suspicionsTable,
+      eventBridge,
+      busName,
+      logger,
+    }),
+  },
   logger,
+  { passwordGate: createRemotePasswordGate(lambda, accountsFunctionName) },
 );
 
 export const handler = async (event: unknown) => {

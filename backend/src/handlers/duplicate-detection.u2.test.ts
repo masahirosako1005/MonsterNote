@@ -17,6 +17,9 @@ const ENV = {
   DUPLICATE_SUSPICIONS_TABLE: 'DuplicateSuspicions',
   REVIEW_DECISIONS_TABLE: 'ReviewDecisions',
   SETTINGS_FUNCTION_NAME: 'settings-fn',
+  // U4: すべて削除・mustChangePasswordゲートを足したことに伴う追加の環境変数
+  EVENT_BUS_NAME: 'monsternote-dev',
+  ACCOUNTS_FUNCTION_NAME: 'accounts-fn',
 };
 
 const payload = (o: unknown) =>
@@ -36,6 +39,7 @@ const settingsRecord = {
 beforeEach(() => {
   ddbMock.reset();
   lambdaMock.reset();
+  lambdaMock.on(InvokeCommand).resolves({ Payload: payload({ mustChangePassword: false }) });
   for (const [k, v] of Object.entries(ENV)) vi.stubEnv(k, v);
   vi.resetModules();
 });

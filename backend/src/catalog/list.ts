@@ -189,7 +189,8 @@ export function createListRoutes(deps: {
   return {
     'GET /v1/catalog/reports': async (event) => {
       const caller = getCaller(event);
-      requireRole(caller, 'requester');
+      // U4（D-8）: 「すべて削除」の確認画面（BR13.2）が件数を見せるため、管理者にも開く
+      requireRole(caller, 'requester', 'admin');
       return page(event, INDEX_ALL, ALL_PARTITION);
     },
     'GET /v1/catalog/my-reports': async (event) => {

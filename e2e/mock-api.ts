@@ -11,17 +11,28 @@ interface Account {
   accountId: string;
   loginId: string;
   password: string;
-  role: 'hunter' | 'requester';
+  role: 'hunter' | 'requester' | 'admin';
   displayName: string;
+  organization?: string;
+  // U4（BR11.1〜BR11.9）
+  status: 'active' | 'disabled';
+  mustChangePassword: boolean;
+  consentedAt?: string;
+  hunterNumber?: string;
 }
 
-const ACCOUNTS: Account[] = [
+// U1〜U3 の既存の試験が初回の手続きなしで使えるよう、最初から手続き済みの状態で用意する
+const INITIAL_ACCOUNTS: Account[] = [
   {
     accountId: 'hunter-a',
     loginId: 'hunter01',
     password: 'pass1234',
     role: 'hunter',
     displayName: 'ハンター A',
+    status: 'active',
+    mustChangePassword: false,
+    consentedAt: '2026-01-01T00:00:00.000Z',
+    hunterNumber: '101',
   },
   {
     accountId: 'hunter-b',
@@ -29,6 +40,10 @@ const ACCOUNTS: Account[] = [
     password: 'pass1234',
     role: 'hunter',
     displayName: 'ハンター B',
+    status: 'active',
+    mustChangePassword: false,
+    consentedAt: '2026-01-01T00:00:00.000Z',
+    hunterNumber: '102',
   },
   {
     accountId: 'requester-a',
@@ -36,8 +51,87 @@ const ACCOUNTS: Account[] = [
     password: 'pass1234',
     role: 'requester',
     displayName: '市の担当',
+    organization: 'municipality',
+    status: 'active',
+    mustChangePassword: false,
+  },
+  // U4（新規）: 管理者アプリの試験用
+  {
+    accountId: 'admin-a',
+    loginId: 'admin01',
+    password: 'pass1234',
+    role: 'admin',
+    displayName: '管理者 A',
+    status: 'active',
+    mustChangePassword: false,
+  },
+  // U4（UC21）: 初回の手続きをまだ終えていない新規のハンター
+  {
+    accountId: 'hunter-new',
+    loginId: 'hunter09',
+    password: 'temp1234',
+    role: 'hunter',
+    displayName: 'ハンター 新人',
+    status: 'active',
+    mustChangePassword: true,
   },
 ];
+
+let ACCOUNTS: Account[] = INITIAL_ACCOUNTS.map((a) => ({ ...a }));
+
+interface AuditEntry {
+  entryId: string;
+  occurredAt: string;
+  actorName?: string;
+  action: string;
+  targetType: string;
+  targetId?: string;
+  outcome: 'succeeded' | 'failed';
+  detail?: Record<string, unknown>;
+}
+
+let auditEntries: AuditEntry[] = [];
+
+function recordAudit(
+  actor: Account | undefined,
+  action: string,
+  targetType: string,
+  targetId?: string,
+  detail?: Record<string, unknown>,
+) {
+  auditEntries.unshift({
+    entryId: randomUUID(),
+    occurredAt: new Date().toISOString(),
+    actorName: actor?.displayName,
+    action,
+    targetType,
+    targetId,
+    outcome: 'succeeded',
+    detail,
+  });
+}
+
+interface AdminSettings {
+  duplicateDistanceMeters: number;
+  duplicateWindowHours: number;
+  targetAreaNorth: number;
+  targetAreaSouth: number;
+  targetAreaEast: number;
+  targetAreaWest: number;
+  updatedByAccountId?: string;
+  updatedAt?: string;
+}
+
+const INITIAL_SETTINGS: AdminSettings = {
+  duplicateDistanceMeters: 1000,
+  duplicateWindowHours: 24,
+  targetAreaNorth: 46,
+  targetAreaSouth: 20,
+  targetAreaEast: 154,
+  targetAreaWest: 122,
+};
+
+let adminSettings: AdminSettings = { ...INITIAL_SETTINGS };
 
 interface Report {
   reportId: string;
@@ -142,6 +236,9 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     reports = [];
     photoKinds.clear();
     nextDetectionOutcome = 'detected';
+    ACCOUNTS = INITIAL_ACCOUNTS.map((a) => ({ ...a }));
+    auditEntries = [];
+    adminSettings = { ...INITIAL_SETTINGS };
     return send(res, 204);
   }
   if (method === 'POST' && path === '/__set-detection') {
@@ -163,18 +260,23 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     const account = ACCOUNTS.find(
       (a) => a.loginId === body.loginId && a.password === body.password,
     );
-    if (!account) return error(res, 401, 'UNAUTHENTICATED', 'ID かパスワードが違います');
+    if (!account || account.status !== 'active') {
+      return error(res, 401, 'UNAUTHENTICATED', 'ID かパスワードが違います');
+    }
+    const isHunter = account.role === 'hunter';
     return send(res, 200, {
       ...tokens(account),
-      mustChangePassword: false,
-      consentRequired: false,
-      hunterNumberRequired: false,
+      mustChangePassword: account.mustChangePassword,
+      consentRequired: isHunter && !account.consentedAt,
+      hunterNumberRequired: isHunter && !account.hunterNumber,
     });
   }
   if (method === 'POST' && path === '/v1/session/refresh') {
     const body = await readJson(req);
     const account = ACCOUNTS.find((a) => body.refreshToken === `refresh-${a.accountId}`);
-    if (!account) return error(res, 401, 'UNAUTHENTICATED', 'もう一度ログインしてください');
+    if (!account || account.status !== 'active') {
+      return error(res, 401, 'UNAUTHENTICATED', 'もう一度ログインしてください');
+    }
     return send(res, 200, tokens(account));
   }
 
@@ -182,6 +284,166 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   if (!me) return error(res, 401, 'UNAUTHENTICATED', 'ログインしてください');
 
   if (method === 'DELETE' && path === '/v1/session') return send(res, 204);
+
+  // U4（BR11.7）: 初回の手続き
+  if (method === 'GET' && path === '/v1/me') {
+    const isHunter = me.role === 'hunter';
+    return send(res, 200, {
+      accountId: me.accountId,
+      role: me.role,
+      displayName: me.displayName,
+      mustChangePassword: me.mustChangePassword,
+      consentRequired: isHunter && !me.consentedAt,
+      hunterNumberRequired: isHunter && !me.hunterNumber,
+    });
+  }
+  if (method === 'PUT' && path === '/v1/me/password') {
+    const body = await readJson(req);
+    const password = String(body.password ?? '');
+    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+      return error(res, 422, 'VALIDATION_FAILED', '8 文字以上で、英字と数字を含めてください');
+    }
+    me.password = password;
+    me.mustChangePassword = false;
+    return send(res, 204);
+  }
+  if (method === 'PUT' && path === '/v1/me/consent') {
+    const body = await readJson(req);
+    if (typeof body.consented !== 'boolean') {
+      return error(res, 400, 'VALIDATION_FAILED', '選んでください');
+    }
+    if (body.consented) me.consentedAt = new Date().toISOString();
+    return send(res, 204);
+  }
+  if (method === 'PUT' && path === '/v1/me/hunter-number') {
+    const body = await readJson(req);
+    const hunterNumber = String(body.hunterNumber ?? '');
+    if (!/^[0-9]{1,20}$/.test(hunterNumber)) {
+      return error(res, 400, 'VALIDATION_FAILED', '番号を入れてください');
+    }
+    me.hunterNumber = hunterNumber;
+    return send(res, 204);
+  }
+
+  // U4（US6.1〜US6.3）: 管理者のアカウント管理
+  if (path === '/v1/admin/accounts' && (method === 'GET' || method === 'POST')) {
+    if (me.role !== 'admin') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    if (method === 'GET') {
+      return send(res, 200, {
+        items: ACCOUNTS.map((a) => ({
+          accountId: a.accountId,
+          loginId: a.loginId,
+          displayName: a.displayName,
+          role: a.role,
+          status: a.status,
+          ...(a.organization ? { organization: a.organization } : {}),
+        })),
+      });
+    }
+    const body = await readJson(req);
+    const loginId = String(body.loginId ?? '');
+    if (ACCOUNTS.some((a) => a.loginId === loginId)) {
+      return error(res, 409, 'LOGIN_ID_TAKEN', 'この ID は使われています');
+    }
+    const role = (body.role === 'admin' || body.role === 'requester' ? body.role : 'hunter') as
+      'hunter' | 'requester' | 'admin';
+    const temporaryPassword = 'tempPass1';
+    const created: Account = {
+      accountId: randomUUID(),
+      loginId,
+      password: temporaryPassword,
+      role,
+      displayName: String(body.displayName ?? ''),
+      organization: typeof body.organization === 'string' ? body.organization : undefined,
+      status: 'active',
+      mustChangePassword: true,
+    };
+    ACCOUNTS.push(created);
+    recordAudit(me, 'account.created', 'account', created.accountId);
+    return send(res, 200, { accountId: created.accountId, temporaryPassword });
+  }
+  const statusMatch = path.match(/^\/v1\/admin\/accounts\/([^/]+)\/status$/);
+  if (method === 'PUT' && statusMatch) {
+    if (me.role !== 'admin') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    const target = ACCOUNTS.find((a) => a.accountId === statusMatch[1]);
+    if (!target) return error(res, 404, 'NOT_FOUND', '見つかりません');
+    const body = await readJson(req);
+    const status = body.status === 'disabled' ? 'disabled' : 'active';
+    if (status === 'disabled' && target.accountId === me.accountId) {
+      return error(res, 422, 'CANNOT_DISABLE_SELF', 'この操作はできません（自分自身）');
+    }
+    if (status === 'disabled' && target.role === 'admin') {
+      const activeAdmins = ACCOUNTS.filter(
+        (a) => a.role === 'admin' && a.status === 'active',
+      ).length;
+      if (activeAdmins <= 1) {
+        return error(res, 422, 'LAST_ADMIN', 'この操作はできません（最後の管理者）');
+      }
+    }
+    target.status = status;
+    recordAudit(
+      me,
+      status === 'disabled' ? 'account.disabled' : 'account.enabled',
+      'account',
+      target.accountId,
+    );
+    return send(res, 204);
+  }
+  const passwordResetMatch = path.match(/^\/v1\/admin\/accounts\/([^/]+)\/password-reset$/);
+  if (method === 'POST' && passwordResetMatch) {
+    if (me.role !== 'admin') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    const target = ACCOUNTS.find((a) => a.accountId === passwordResetMatch[1]);
+    if (!target) return error(res, 404, 'NOT_FOUND', '見つかりません');
+    const temporaryPassword = 'tempPass2';
+    target.password = temporaryPassword;
+    target.mustChangePassword = true;
+    recordAudit(me, 'account.password-reset', 'account', target.accountId);
+    return send(res, 200, { accountId: target.accountId, temporaryPassword });
+  }
+
+  // U4（US6.4）: 重複の基準と対象地域
+  if (path === '/v1/admin/settings' && (method === 'GET' || method === 'PUT')) {
+    if (me.role !== 'admin') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    if (method === 'GET') return send(res, 200, adminSettings);
+    const body = await readJson(req);
+    adminSettings = {
+      duplicateDistanceMeters: Number(body.duplicateDistanceMeters),
+      duplicateWindowHours: Number(body.duplicateWindowHours),
+      targetAreaNorth: Number(body.targetAreaNorth),
+      targetAreaSouth: Number(body.targetAreaSouth),
+      targetAreaEast: Number(body.targetAreaEast),
+      targetAreaWest: Number(body.targetAreaWest),
+      updatedByAccountId: me.accountId,
+      updatedAt: new Date().toISOString(),
+    };
+    recordAudit(me, 'settings.updated', 'settings');
+    return send(res, 204);
+  }
+
+  // U4（US6.6）: 操作の記録
+  if (method === 'GET' && path === '/v1/admin/audit-entries') {
+    if (me.role !== 'admin') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    return send(res, 200, { items: auditEntries.slice(0, 50), nextCursor: null });
+  }
+
+  // U4（US6.5・BR13.1）: 試験運用の終わりのデータ削除
+  const deleteDataMatch = path.match(
+    /^\/v1\/admin\/(catalog|review|duplicate|detection|reporting)-data$/,
+  );
+  if (method === 'POST' && deleteDataMatch) {
+    if (me.role !== 'admin') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    const component = deleteDataMatch[1];
+    // このモックでは一覧・確認・判別の記録を reports の付随情報として扱っているため、
+    // 件数はどの入口でも現在の reports.length（本物の件数の持ち主は report・photo だけ）。
+    // 実際に消す（reports を空にする）のは順番の最後（⑤ reporting）だけ。何度呼んでも同じ結果（BR13.1）
+    const deletedCount = reports.length;
+    if (component === 'reporting') {
+      reports = [];
+      photoKinds.clear();
+    }
+    recordAudit(me, 'data.deleted', 'data', undefined, { componentName: component, deletedCount });
+    return send(res, 200, { deletedCount });
+  }
 
   if (method === 'POST' && path === '/v1/photos') {
     if (me.role !== 'hunter') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
@@ -222,6 +484,36 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   if (method === 'POST' && path === '/v1/reports') {
     if (me.role !== 'hunter') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
     const body = await readJson(req);
+    // U2（Build and Testで発見。本物のバックエンドの必須項目を、このモックも確かめる）
+    const missing: string[] = [];
+    const photos = body.photos as { body?: string; tail?: string; chest?: string } | undefined;
+    if (!photos?.body) missing.push('photos.body');
+    if (!photos?.tail) missing.push('photos.tail');
+    if (!['adult', 'juvenile'].includes(String(body.ageClass))) missing.push('ageClass');
+    if (!['trap', 'gun', 'other'].includes(String(body.captureMethod))) {
+      missing.push('captureMethod');
+    }
+    if (typeof body.capturedAt !== 'string' || Number.isNaN(Date.parse(body.capturedAt))) {
+      missing.push('capturedAt');
+    }
+    if (!['exif', 'manual'].includes(String(body.capturedAtSource))) {
+      missing.push('capturedAtSource');
+    }
+    if (!['exif', 'manual'].includes(String(body.locationSource))) {
+      missing.push('locationSource');
+    }
+    // BR2.17・BR2.18: クマは胸の写真か「撮らなかった」のどちらかが必須。クマ以外には結び付けられない
+    if (body.species === 'bear' && !photos?.chest && body.chestPhotoMissing !== true) {
+      missing.push('photos.chest');
+    }
+    if (body.species !== 'bear' && photos?.chest) missing.push('photos.chest');
+    if (missing.length > 0) {
+      return send(res, 422, {
+        code: 'VALIDATION_FAILED',
+        message: '項目を確かめてください',
+        details: missing.map((field) => ({ field, reason: 'required' })),
+      });
+    }
     const submissionKey = String(body.submissionKey);
     const existing = reports.find((r) => r.submissionKey === submissionKey);
     if (existing) return send(res, 200, { reportId: existing.reportId });
@@ -263,7 +555,10 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     return send(res, 200, { items: mine.map(listItem), nextCursor: null, totalCount: mine.length });
   }
   if (method === 'GET' && path === '/v1/catalog/reports') {
-    if (me.role !== 'requester') return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    // U4（D-8）: 「すべて削除」の確認画面が件数を見せるため、管理者も呼べる
+    if (me.role !== 'requester' && me.role !== 'admin') {
+      return error(res, 403, 'FORBIDDEN', 'この操作はできません');
+    }
     // U3（BR4.5）: status・flag で絞り込む（複数はカンマ区切り）
     const statusFilter = url.searchParams.get('status')?.split(',').filter(Boolean) ?? [];
     const flagFilter = url.searchParams.get('flag')?.split(',').filter(Boolean) ?? [];

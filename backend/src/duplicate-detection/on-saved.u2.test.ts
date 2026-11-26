@@ -147,7 +147,13 @@ describe('createDuplicateOnSaved', () => {
     const sentTypes = ebMock
       .commandCalls(PutEventsCommand)
       .map((c) => c.args[0].input.Entries?.[0]?.DetailType);
-    expect(sentTypes).toEqual(['duplicate.suspected', 'duplicate.suspected']);
+    // U4: duplicate.suspected の行ごとに audit.recorded も送る（BR12.5）
+    expect(sentTypes).toEqual([
+      'duplicate.suspected',
+      'audit.recorded',
+      'duplicate.suspected',
+      'audit.recorded',
+    ]);
   });
 
   it('同じ組は作り直さない。知らせも送り直さない（BR8.6）', async () => {
