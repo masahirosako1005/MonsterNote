@@ -22,7 +22,8 @@ export const CONTENT_SECURITY_POLICY = [
   "script-src 'self'",
   // MUI のスタイルのため style だけ inline を許す
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' blob: data: https://*.s3.${REGION}.amazonaws.com`,
+  // 地図のタイル画像は OpenStreetMap の公式サーバーから画面が直接取得する（MapPicker.tsx）
+  `img-src 'self' blob: data: https://*.s3.${REGION}.amazonaws.com https://tile.openstreetmap.org`,
   `connect-src 'self' https://*.execute-api.${REGION}.amazonaws.com https://cognito-idp.${REGION}.amazonaws.com https://*.s3.${REGION}.amazonaws.com`,
   "frame-ancestors 'none'",
   "base-uri 'self'",

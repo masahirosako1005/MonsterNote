@@ -60,7 +60,6 @@ export function PhotoPicker({
           hidden
           type="file"
           accept="image/jpeg,image/png,image/heic,image/heif"
-          capture="environment"
           disabled={uploading}
           onChange={handleChange}
           data-testid="photo-input"

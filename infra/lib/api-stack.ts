@@ -13,7 +13,10 @@ import { HttpUserPoolAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import {
   Alarm,
+  AlarmStatusWidget,
   ComparisonOperator,
+  Dashboard,
+  GraphWidget,
   MathExpression,
   Metric,
   TreatMissingData,
@@ -300,7 +303,7 @@ export class ApiStack extends Stack {
     }
 
     // 知らせ: 送り手（source）で絞り、受け手の関数に配る。受け手は EventBridge からだけ呼べる
-    new Rule(this, 'ReportSavedRule', {
+    const reportSavedRule = new Rule(this, 'ReportSavedRule', {
       eventBus: bus,
       eventPattern: { source: ['monsternote.reporting'], detailType: ['report.saved'] },
       targets: [
@@ -310,7 +313,7 @@ export class ApiStack extends Stack {
         new LambdaFunction(duplicateDetectionOnSaved),
       ],
     });
-    new Rule(this, 'StatusChangedRule', {
+    const statusChangedRule = new Rule(this, 'StatusChangedRule', {
       eventBus: bus,
       eventPattern: { source: ['monsternote.review'], detailType: ['review.status-changed'] },
       // U2: 却下・取り消しで索引の active を出し入れする（BR8.7・BR8.11。Assumptions 参照）
@@ -322,7 +325,7 @@ export class ApiStack extends Stack {
     // U3 BR4.6・UC19: 重複の疑いの印（送り手は U2 の DuplicateDetection。C14）。
     // 新しい関数は作らない（infrastructure-specification.md）。既存の catalogOnStatus が受け、
     // 関数の中で envelope.type を見て振り分ける（handlers/consumers.ts）
-    new Rule(this, 'DuplicateSuspectedRule', {
+    const duplicateSuspectedRule = new Rule(this, 'DuplicateSuspectedRule', {
       eventBus: bus,
       eventPattern: {
         source: ['monsternote.duplicatedetection'],
@@ -332,11 +335,17 @@ export class ApiStack extends Stack {
     });
     // U4（BR12.5・NFR14.5）: 操作の記録。送り手は各部品（Accounts・Review・ReportCatalog・Reporting・
     // DuplicateDetection・Settings）。detailTypeだけで絞り、送り手は区別しない
-    new Rule(this, 'AuditRecordedRule', {
+    const auditRecordedRule = new Rule(this, 'AuditRecordedRule', {
       eventBus: bus,
       eventPattern: { detailType: ['audit.recorded'] },
       targets: [new LambdaFunction(auditLog)],
     });
+    const eventRules = [
+      reportSavedRule,
+      statusChangedRule,
+      duplicateSuspectedRule,
+      auditRecordedRule,
+    ];
 
     // HTTP API
     this.httpApi = new HttpApi(this, 'HttpApi', {
@@ -461,30 +470,81 @@ export class ApiStack extends Stack {
     // そのため、関数を 9 個以下ずつの組に分け、組ごとに別のアラームを作る（同じ SNS トピックへ通知する）。
     const LAMBDA_ERRORS_ALARM_GROUP_SIZE = 9;
     const fnList = Object.values(this.functions);
-    const lambdaErrorsAlarms = fnList
-      .reduce<IMetric[][]>((groups, fn, i) => {
-        const metric = fn.metricErrors({ period, statistic: 'Sum' });
-        const groupIndex = Math.floor(i / LAMBDA_ERRORS_ALARM_GROUP_SIZE);
-        (groups[groupIndex] ??= []).push(metric);
-        return groups;
-      }, [])
-      .map((group, i) => {
-        const using = Object.fromEntries(group.map((m, j) => [`m${j}`, m]));
-        return new Alarm(this, `LambdaErrorsAlarm${i}`, {
-          alarmName: `masahiro-cloudwatch-monsternote-lambda-errors-${i}`,
-          alarmDescription: `5 分間で関数グループ ${i} のエラーの合計が 3 回以上`,
-          metric: new MathExpression({
-            expression: Object.keys(using).join('+'),
-            usingMetrics: using,
-            period,
-          }),
-          threshold: 3,
-          evaluationPeriods: 1,
-          comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-          treatMissingData: TreatMissingData.NOT_BREACHING,
-        });
+    const errorGroups = fnList.reduce<IMetric[][]>((groups, fn, i) => {
+      const metric = fn.metricErrors({ period, statistic: 'Sum' });
+      const groupIndex = Math.floor(i / LAMBDA_ERRORS_ALARM_GROUP_SIZE);
+      (groups[groupIndex] ??= []).push(metric);
+      return groups;
+    }, []);
+    const lambdaErrorsAlarms = errorGroups.map((group, i) => {
+      const using = Object.fromEntries(group.map((m, j) => [`m${j}`, m]));
+      return new Alarm(this, `LambdaErrorsAlarm${i}`, {
+        alarmName: `masahiro-cloudwatch-monsternote-lambda-errors-${i}`,
+        alarmDescription: `5 分間で関数グループ ${i} のエラーの合計が 3 回以上`,
+        metric: new MathExpression({
+          expression: Object.keys(using).join('+'),
+          usingMetrics: using,
+          period,
+        }),
+        threshold: 3,
+        evaluationPeriods: 1,
+        comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        treatMissingData: TreatMissingData.NOT_BREACHING,
       });
+    });
     for (const alarm of [api5xx, ...lambdaErrorsAlarms]) alarm.addAlarmAction(new SnsAction(topic));
+
+    // 観測用ダッシュボード（observability-setup。新しい指標・アラームは増やさず、既存のものだけを
+    // 1 枚にまとめる。CloudWatch ダッシュボードは最初の 3 個まで無料〈現在 0 個使用中〉）
+    new Dashboard(this, 'OperationsDashboard', {
+      dashboardName: 'masahiro-cloudwatch-monsternote-operations',
+      widgets: [
+        [
+          new GraphWidget({
+            title: 'API の健康状態',
+            left: [apiMetric('5xx'), apiMetric('4xx'), apiMetric('Count')],
+            right: [apiMetric('Latency')],
+            width: 12,
+          }),
+          new AlarmStatusWidget({
+            title: 'アラームの状態',
+            alarms: [api5xx, ...lambdaErrorsAlarms],
+            width: 12,
+          }),
+        ],
+        [
+          new GraphWidget({
+            title: '関数グループ 0 のエラー（9 関数）',
+            left: errorGroups[0],
+            width: 12,
+            stacked: true,
+          }),
+          new GraphWidget({
+            title: '関数グループ 1 のエラー（3 関数）',
+            left: errorGroups[1] ?? [],
+            width: 12,
+            stacked: true,
+          }),
+        ],
+        [
+          new GraphWidget({
+            title:
+              'EventBridge の配達失敗（185 回のやり直しをすべて使い切った件数。どの Unit の設計にも監視が無かったギャップ）',
+            left: eventRules.map(
+              (rule) =>
+                new Metric({
+                  namespace: 'AWS/Events',
+                  metricName: 'FailedInvocations',
+                  dimensionsMap: { RuleName: rule.ruleName },
+                  statistic: 'Sum',
+                  period,
+                }),
+            ),
+            width: 24,
+          }),
+        ],
+      ],
+    });
   }
 
   /** API の URL（末尾の / なし） */
