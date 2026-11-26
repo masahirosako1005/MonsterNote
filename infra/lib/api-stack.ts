@@ -207,6 +207,7 @@ export class ApiStack extends Stack {
         env: {
           REPORT_FOOTPRINTS_TABLE: tables.reportFootprints.tableName,
           PROCESSED_EVENTS_TABLE: tables.processedEvents.tableName,
+          DUPLICATE_SUSPICIONS_TABLE: tables.duplicateSuspicions.tableName,
         },
       },
     );
@@ -285,6 +286,7 @@ export class ApiStack extends Stack {
     bus.grantPutEventsTo(duplicateDetectionOnSaved);
     settings.grantInvoke(duplicateDetectionOnSaved);
     tables.reportFootprints.grantReadWriteData(duplicateDetectionOnStatus);
+    tables.duplicateSuspicions.grantReadWriteData(duplicateDetectionOnStatus);
     tables.reviewDecisions.grantReadWriteData(review);
     bus.grantPutEventsTo(review);
     // U4: すべて削除の入口（BatchWriteItem）を足したため読み書きに引き上げる

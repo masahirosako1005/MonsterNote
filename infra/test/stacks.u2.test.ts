@@ -208,6 +208,19 @@ describe('Api（U2 で足す関数・道・知らせ）', () => {
     });
   });
 
+  it('DuplicateDetectionOnStatus は DUPLICATE_SUSPICIONS_TABLE を持つ（実機で欠落し、起動のたびに例外で落ちていた不具合の回帰試験）', () => {
+    const fns = t.api!.findResources('AWS::Lambda::Function');
+    const [, onStatus] =
+      Object.entries(fns).find(([logicalId]) =>
+        logicalId.startsWith('DuplicateDetectionOnStatusFunction'),
+      ) ?? [];
+    expect(onStatus).toBeDefined();
+    const vars = (
+      onStatus as { Properties: { Environment: { Variables: Record<string, unknown> } } }
+    ).Properties.Environment.Variables;
+    expect(Object.keys(vars)).toContain('DUPLICATE_SUSPICIONS_TABLE');
+  });
+
   it('常時課金のリソースは増えていない（project.md の Forbidden）', () => {
     const forbidden = /^AWS::(EC2|RDS|ElastiCache|ECS|WAFv2|Route53)::/;
     for (const template of Object.values(t)) {
